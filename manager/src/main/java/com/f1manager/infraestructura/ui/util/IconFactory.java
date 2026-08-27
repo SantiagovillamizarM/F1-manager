@@ -1,0 +1,245 @@
+//Dibuja (o carga por URL) todos los íconos que
+// se usan en la app (casco, bandera, lupa, auto, escudo, etc.).
+package com.f1manager.infraestructura.ui.util;
+
+import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.*;
+import javafx.scene.image.ImageView;
+public final class IconFactory {
+
+    public static final Color ROJO = Color.web("#e10600");
+    public static final Color ROJO_BRILLANTE = Color.web("#ff2b2b");
+    public static final Color BLANCO = Color.web("#f5f6fa");
+    public static final Color GRIS = Color.web("#464d5e");
+
+    private IconFactory() {
+    }
+
+    /** Envuelve un ícono en un contenedor cuadrado con fondo rojo redondeado, usado en las tarjetas del menú. */
+    public static StackPane contenedor(Node icono, double tamano) {
+        StackPane fondo = new StackPane();
+        fondo.getStyleClass().add("tarjeta-icono-fondo");
+        fondo.setPrefSize(tamano, tamano);
+        fondo.setMinSize(tamano, tamano);
+        fondo.setMaxSize(tamano, tamano);
+        fondo.getChildren().add(icono);
+        return fondo;
+    }
+
+    public static StackPane contenedor(Node icono, double ancho, double alto) {
+        StackPane fondo = new StackPane();
+        fondo.getStyleClass().add("tarjeta-icono-fondo");
+        fondo.setPrefSize(ancho, alto);
+        fondo.setMinSize(ancho, alto);
+        fondo.setMaxSize(ancho, alto);
+        fondo.getChildren().add(icono);
+        return fondo;
+    }
+
+    private static void aplicarGlow(Node nodo, Color color) {
+        DropShadow glow = new DropShadow();
+        glow.setColor(color);
+        glow.setRadius(14);
+        glow.setSpread(0.25);
+        nodo.setEffect(glow);
+    }
+
+    public static Group logo(double escala) {
+        Image imagen = new Image("https://logodownload.org/wp-content/uploads/2016/11/formula-1-logo-5-3.png", true);
+        ImageView vista = new ImageView(imagen);
+        vista.setPreserveRatio(true);
+        vista.setFitHeight(40);
+
+        Group grupo = new Group(vista);
+        grupo.setScaleX(escala);
+        grupo.setScaleY(escala);
+        aplicarGlow(grupo, ROJO_BRILLANTE);
+        return grupo;
+    }
+
+    
+
+    /** Casco de piloto estilizado. */
+    public static Group casco(Color color) {
+        Image imagen = new Image("https://i.ibb.co/mrFCTM4n/upscalemedia-transformed-22.png", true);
+        ImageView vista = new ImageView(imagen);
+        vista.setPreserveRatio(true);
+        vista.setFitWidth(50);
+        return new Group(vista);
+    }
+
+    /** Bandera a cuadros. */
+    public static Group banderaCuadros() {
+        Image imagen = new Image("https://i.ibb.co/bMJDPLkT/upscalemedia-transformed-21.png", true);
+        ImageView vista = new ImageView(imagen);
+        vista.setPreserveRatio(true);
+        vista.setFitWidth(50);
+        return new Group(vista);
+    }
+
+    /** Lupa (buscar). */
+    public static Group lupa(Color color) {
+        Circle aro = new Circle(14, 14, 10);
+        aro.setFill(Color.TRANSPARENT);
+        aro.setStroke(color);
+        aro.setStrokeWidth(3.2);
+
+        Line mango = new Line(21, 21, 32, 32);
+        mango.setStroke(color);
+        mango.setStrokeWidth(3.6);
+        mango.setStrokeLineCap(StrokeLineCap.ROUND);
+
+        return new Group(aro, mango);
+    }
+
+    /** Documento (registrar). */
+    public static Group documento(Color color) {
+        Rectangle hoja = new Rectangle(6, 2, 22, 30);
+        hoja.setArcWidth(4);
+        hoja.setArcHeight(4);
+        hoja.setFill(Color.TRANSPARENT);
+        hoja.setStroke(color);
+        hoja.setStrokeWidth(2.2);
+
+        Group lineas = new Group();
+        for (int i = 0; i < 4; i++) {
+            Line linea = new Line(11, 9 + i * 5, 23, 9 + i * 5);
+            linea.setStroke(color);
+            linea.setStrokeWidth(1.6);
+            lineas.getChildren().add(linea);
+        }
+        return new Group(hoja, lineas);
+    }
+
+    /** X (eliminar). */
+    public static Group equis(Color color) {
+        Line l1 = new Line(4, 4, 26, 26);
+        Line l2 = new Line(26, 4, 4, 26);
+        for (Line l : new Line[]{l1, l2}) {
+            l.setStroke(color);
+            l.setStrokeWidth(4);
+            l.setStrokeLineCap(StrokeLineCap.ROUND);
+        }
+        return new Group(l1, l2);
+    }
+
+    /** Silueta simplificada de un trazado de circuito (estilo Nürburgring), usada como ícono de "Listar circuitos". */
+    /** Silueta del circuito de Nürburgring, cargada desde una imagen por URL. */
+    public static Group pistaSilueta(Color color) {
+        Image imagen = new Image("https://i.ibb.co/Bm0jFpJ/upscalemedia-transformed-18.png", true);
+        ImageView vista = new ImageView(imagen);
+        vista.setPreserveRatio(true);
+        vista.setFitWidth(50);
+        return new Group(vista);
+    }
+
+    /** Ícono de equipo: escudo con franja diagonal. */
+    public static Group escudoEquipo(Color color) {
+        Image imagen = new Image("https://i.ibb.co/7dcG7G6n/upscalemedia-transformed-19.png", true);
+        ImageView vista = new ImageView(imagen);
+        vista.setPreserveRatio(true);
+        vista.setFitWidth(50);
+        return new Group(vista);
+    }
+
+    /** Ícono de monoplaza estilizado (vista superior simplificada). */
+    public static Group monoplaza(Color color) {
+    Image imagen = new Image("https://i.ibb.co/TMSc4M3t/upscalemedia-transformed-20.png", true);
+        ImageView vista = new ImageView(imagen);
+        vista.setPreserveRatio(true);
+        vista.setFitWidth(50);
+        return new Group(vista);
+    }
+
+    /** Engranaje simple (configuración). */
+    public static Group engranaje(Color color) {
+    Image imagen = new Image("https://i.ibb.co/tph33mBY/upscalemedia-transformed-23.png", true);
+        ImageView vista = new ImageView(imagen);
+        vista.setPreserveRatio(true);
+        vista.setFitWidth(50);
+        return new Group(vista);
+    }
+
+    /** Flecha simple para "volver". */
+    public static Group flechaVolver(Color color) {
+        Polyline flecha = new Polyline(14, 2, 2, 12, 14, 22);
+        flecha.setStroke(color);
+        flecha.setStrokeWidth(2.6);
+        flecha.setStrokeLineCap(StrokeLineCap.ROUND);
+        flecha.setStrokeLineJoin(StrokeLineJoin.ROUND);
+        flecha.setFill(Color.TRANSPARENT);
+
+        Line linea = new Line(2, 12, 24, 12);
+        linea.setStroke(color);
+        linea.setStrokeWidth(2.6);
+        linea.setStrokeLineCap(StrokeLineCap.ROUND);
+
+        return new Group(linea, flecha);
+    }
+
+    /** Gota de lluvia / sol simples para selección de clima. */
+    public static Group sol(Color color) {
+        Circle centro = new Circle(16, 16, 6);
+        centro.setFill(color);
+        Group rayos = new Group();
+        for (int i = 0; i < 8; i++) {
+            double angulo = Math.toRadians(i * 45);
+            Line rayo = new Line(
+                    16 + Math.cos(angulo) * 9, 16 + Math.sin(angulo) * 9,
+                    16 + Math.cos(angulo) * 14, 16 + Math.sin(angulo) * 14
+            );
+            rayo.setStroke(color);
+            rayo.setStrokeWidth(2);
+            rayo.setStrokeLineCap(StrokeLineCap.ROUND);
+            rayos.getChildren().add(rayo);
+        }
+        return new Group(rayos, centro);
+    }
+
+    public static Group lluvia(Color color) {
+        Group grupo = new Group();
+        Ellipse nube = new Ellipse(16, 10, 12, 7);
+        nube.setFill(color);
+        grupo.getChildren().add(nube);
+        for (int i = 0; i < 3; i++) {
+            Line gota = new Line(9 + i * 7, 20, 6 + i * 7, 28);
+            gota.setStroke(color);
+            gota.setStrokeWidth(2.2);
+            gota.setStrokeLineCap(StrokeLineCap.ROUND);
+            grupo.getChildren().add(gota);
+        }
+        return grupo;
+    }
+
+    public static Group tormenta(Color color) {
+        Group grupo = new Group();
+        Ellipse nube = new Ellipse(16, 9, 13, 7);
+        nube.setFill(color);
+        Polygon rayo = new Polygon(17, 16, 11, 27, 16, 27, 12, 36, 23, 22, 17, 22);
+        rayo.setFill(ROJO_BRILLANTE);
+        grupo.getChildren().addAll(nube, rayo);
+        return grupo;
+    }
+
+    public static Group dado(Color color) {
+        Rectangle marco = new Rectangle(4, 4, 24, 24);
+        marco.setArcWidth(6);
+        marco.setArcHeight(6);
+        marco.setFill(Color.TRANSPARENT);
+        marco.setStroke(color);
+        marco.setStrokeWidth(2.2);
+        Group puntos = new Group();
+        int[][] posiciones = {{10, 10}, {16, 16}, {22, 22}, {22, 10}, {10, 22}};
+        for (int[] p : posiciones) {
+            Circle punto = new Circle(p[0], p[1], 1.8);
+            punto.setFill(color);
+            puntos.getChildren().add(punto);
+        }
+        return new Group(marco, puntos);
+    }
+}
