@@ -6,9 +6,11 @@ import com.f1manager.dominio.servicio.SimuladorCarrera;
 import com.f1manager.infraestructura.ui.util.PistaGenerador;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
@@ -26,7 +28,7 @@ import java.util.function.Consumer;
  */
 public class AnimacionCarreraPane extends BorderPane {
 
-    private static final long DURACION_ANIMACION_MS = 9000;
+    private static final long DURACION_ANIMACION_MS = 24000;
     private static final Color[] PALETA = {
             Color.web("#ff2b2b"), Color.web("#00d4ff"), Color.web("#ffd400"), Color.web("#39ff88"),
             Color.web("#ff8a00"), Color.web("#b388ff"), Color.web("#ff4fd8"), Color.web("#8bc34a"),
@@ -40,8 +42,11 @@ public class AnimacionCarreraPane extends BorderPane {
     private final Clima climaReal;
     private final Map<Piloto, Color> colores = new LinkedHashMap<>();
     private final Map<Piloto, Double> factorVelocidad = new LinkedHashMap<>();
+    private final Slider sliderVelocidadSimulacion = new Slider(0.25, 3.0, 0.5);
+    private final Label etiquetaVelocidadSimulacion = new Label();
     private AnimationTimer timer;
-    private long inicioMs = -1;
+    private long ultimoFrameNs = -1;
+    private double msSimuladosAcumulados = 0;
 
     public AnimacionCarreraPane(Circuito circuito, Clima climaElegido, Consumer<SimuladorCarrera.ResultadoSimulacion> alFinalizar) {
         this.circuito = circuito;
@@ -83,7 +88,31 @@ public class AnimacionCarreraPane extends BorderPane {
         setRight(panelDerecho);
         BorderPane.setMargin(panelDerecho, new Insets(0, 0, 0, 16));
 
+        setBottom(construirControlVelocidad());
+
         iniciarAnimacion(alFinalizar, simulacion);
+    }
+
+    private HBox construirControlVelocidad() {
+        Label titulo = new Label("VELOCIDAD DE SIMULACIÓN");
+        titulo.getStyleClass().add("texto-rojo");
+
+        sliderVelocidadSimulacion.setPrefWidth(240);
+        sliderVelocidadSimulacion.setShowTickMarks(true);
+        sliderVelocidadSimulacion.setMajorTickUnit(0.25);
+        sliderVelocidadSimulacion.valueProperty().addListener((obs, anterior, nuevo) -> actualizarEtiquetaVelocidad());
+        actualizarEtiquetaVelocidad();
+
+        HBox caja = new HBox(14, titulo, sliderVelocidadSimulacion, etiquetaVelocidadSimulacion);
+        caja.getStyleClass().add("panel");
+        caja.setAlignment(Pos.CENTER);
+        caja.setPadding(new Insets(14));
+        BorderPane.setMargin(caja, new Insets(16, 0, 0, 0));
+        return caja;
+    }
+
+    private void actualizarEtiquetaVelocidad() {
+        etiquetaVelocidadSimulacion.setText(String.format("x%.2f", sliderVelocidadSimulacion.getValue()));
     }
 
     private void iniciarAnimacion(Consumer<SimuladorCarrera.ResultadoSimulacion> alFinalizar,
@@ -93,14 +122,16 @@ public class AnimacionCarreraPane extends BorderPane {
         timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                long ahoraMs = now / 1_000_000;
-                if (inicioMs < 0) {
-                    inicioMs = ahoraMs;
+                if (ultimoFrameNs < 0) {
+                    ultimoFrameNs = now;
                 }
-                long transcurrido = ahoraMs - inicioMs;
-                double fraccionTiempo = Math.min(1.0, transcurrido / (double) DURACION_ANIMACION_MS);
+                double deltaMs = (now - ultimoFrameNs) / 1_000_000.0;
+                ultimoFrameNs = now;
+                msSimuladosAcumulados += deltaMs * sliderVelocidadSimulacion.getValue();
 
-                dibujarFrame(pista, fraccionTiempo, transcurrido);
+                double fraccionTiempo = Math.min(1.0, msSimuladosAcumulados / DURACION_ANIMACION_MS);
+
+                dibujarFrame(pista, fraccionTiempo, (long) msSimuladosAcumulados);
 
                 if (fraccionTiempo >= 1.0) {
                     stop();
