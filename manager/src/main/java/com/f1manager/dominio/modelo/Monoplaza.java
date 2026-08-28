@@ -5,6 +5,13 @@ package com.f1manager.dominio.modelo;
 import java.util.Objects;
 public class Monoplaza {
 
+    // Rango seguro de presión de neumáticos (PSI): fuera de él no se puede configurar.
+    // Dentro del rango, alejarse del valor óptimo (el centro) hace que su efecto en carrera
+    // sea cada vez más impredecible: a veces ayuda, a veces perjudica.
+    public static final double PRESION_MINIMA = 18.0;
+    public static final double PRESION_MAXIMA = 26.0;
+    public static final double PRESION_OPTIMA = (PRESION_MINIMA + PRESION_MAXIMA) / 2.0;
+
     private final int id;
     private String modelo;
     private String equipo;
@@ -14,6 +21,7 @@ public class Monoplaza {
     private CargaAerodinamica cargaAerodinamica;
     private ModoConduccion modoConduccion;
     private TipoNeumatico tipoNeumatico;
+    private double presionAire; // PSI
 
     public Monoplaza(int id, String modelo, String equipo, String motor,
                       double velocidadMaxKmh, double aceleracion0a100) {
@@ -26,6 +34,7 @@ public class Monoplaza {
         this.cargaAerodinamica = CargaAerodinamica.MEDIA;
         this.modoConduccion = ModoConduccion.NORMAL;
         this.tipoNeumatico = TipoNeumatico.MEDIO;
+        this.presionAire = PRESION_OPTIMA;
     }
 
     public int getId() {
@@ -94,6 +103,14 @@ public class Monoplaza {
 
     public void setTipoNeumatico(TipoNeumatico tipoNeumatico) {
         this.tipoNeumatico = tipoNeumatico;
+    }
+
+    public double getPresionAire() {
+        return presionAire;
+    }
+
+    public void setPresionAire(double presionAire) {
+        this.presionAire = presionAire;
     }
 
     @Override

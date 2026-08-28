@@ -231,15 +231,34 @@ public final class DataStore {
     }
 
     public void configurarVehiculo(int idVehiculo, CargaAerodinamica carga, ModoConduccion modo,
-                                    TipoNeumatico neumatico) throws ValidacionException {
+                                    TipoNeumatico neumatico, String presionTexto) throws ValidacionException {
         Monoplaza vehiculo = vehiculos.stream().filter(v -> v.getId() == idVehiculo).findFirst()
                 .orElseThrow(() -> new ValidacionException("El vehículo seleccionado no existe."));
         if (carga == null || modo == null || neumatico == null) {
             throw new ValidacionException("Debe seleccionar carga aerodinámica, modo de conducción y tipo de neumático.");
         }
+        double presion = parsearPresion(presionTexto);
         vehiculo.setCargaAerodinamica(carga);
         vehiculo.setModoConduccion(modo);
         vehiculo.setTipoNeumatico(neumatico);
+        vehiculo.setPresionAire(presion);
+    }
+
+    private static double parsearPresion(String texto) throws ValidacionException {
+        String mensajeError = String.format("La presión de aire debe ser un número entre %.0f y %.0f PSI.",
+                Monoplaza.PRESION_MINIMA, Monoplaza.PRESION_MAXIMA);
+        if (esVacio(texto)) {
+            throw new ValidacionException(mensajeError);
+        }
+        try {
+            double valor = Double.parseDouble(texto.trim().replace(",", "."));
+            if (valor < Monoplaza.PRESION_MINIMA || valor > Monoplaza.PRESION_MAXIMA) {
+                throw new ValidacionException(mensajeError);
+            }
+            return valor;
+        } catch (NumberFormatException e) {
+            throw new ValidacionException(mensajeError);
+        }
     }
 
     public Monoplaza getVehiculoPorEquipo(String equipo) {

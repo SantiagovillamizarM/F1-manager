@@ -36,6 +36,13 @@ public class SimuladorCarrera {
     private static final double MULTIPLICADOR_DESGASTE_INADECUADO = 1.8;
     // Cuánto puede llegar a ralentizar un neumático 100% desgastado, comparado con uno nuevo.
     private static final double PENALIZACION_MAX_POR_DESGASTE = 0.15;
+    // Cuánto crece la variabilidad (para bien o para mal) del tiempo por cada PSI de distancia
+    // respecto a la presión óptima, cuando ninguna combinación favorece una dirección clara.
+    // En la presión óptima el efecto es exactamente 0.
+    private static final double ESCALA_EFECTO_PRESION = 0.01;
+    // Cuánto ayuda (o perjudica) por PSI acertar (o no) la dirección de presión favorable,
+    // cuando sí hay una combinación de compuesto/modo/carga/clima que la determina.
+    private static final double ESCALA_EFECTO_PRESION_DIRIGIDA = 0.012;
 
     private final Random random = new Random();
 
@@ -66,6 +73,8 @@ public class SimuladorCarrera {
             resultado.setTiemposPorVuelta(vueltas.tiempos());
             resultado.setDesgastePorVuelta(vueltas.desgaste());
             resultado.setVueltasDePit(vueltas.vueltasDePit());
+            resultado.setTemperaturaLlantasPorVuelta(vueltas.temperaturaLlantas());
+            resultado.setTemperaturaMotorPorVuelta(vueltas.temperaturaMotor());
             resultado.setVelocidadMaximaAlcanzada(generarVelocidadMaxima(monoplaza));
             resultados.add(resultado);
         }
@@ -229,6 +238,25 @@ public class SimuladorCarrera {
                         ? FACTOR_NEUMATICO_ACERTADO
                         : FACTOR_NEUMATICO_INADECUADO;
             }
+
+            // --- Presión de aire: en el valor óptimo no cambia nada. Si la combinación actual
+            // (compuesto, modo, carga, clima) favorece presión alta o baja, acertar la dirección
+            // ayuda y equivocarla perjudica; si ninguna combinación aplica, no hay una dirección
+            // "correcta" que se pueda saber de antemano, así que el efecto es puro azar ---
+            double desviacionFirmada = monoplaza.getPresionAire() - Monoplaza.PRESION_OPTIMA;
+            int direccionFavorable = direccionPresionFavorable(neumatico, climaReal, modo, carga);
+            if (direccionFavorable == 0) {
+                if (desviacionFirmada != 0) {
+                    tiempo *= 1.0 + random.nextGaussian() * ESCALA_EFECTO_PRESION * Math.abs(desviacionFirmada);
+                }
+            } else {
+                double alineacion = direccionFavorable * desviacionFirmada; // >0 si acertó la dirección
+                tiempo *= 1.0 - alineacion * ESCALA_EFECTO_PRESION_DIRIGIDA;
+                if (desviacionFirmada != 0) {
+                    // Un poco de azar residual: acertar la dirección ayuda en promedio, pero no es infalible.
+                    tiempo *= 1.0 + random.nextGaussian() * ESCALA_EFECTO_PRESION * 0.3 * Math.abs(desviacionFirmada);
+                }
+            }
         }
 
         // --- Clima ---
@@ -247,6 +275,41 @@ public class SimuladorCarrera {
 
         return Math.max(tiempo, tiempoBase * 0.5); // seguridad ante configuraciones extremas
     }
+
+    /**
+     * Determina si, para esta combinación de compuesto, clima real, modo de conducción y carga
+     * aerodinámica, conviene presión alta (+1), baja (-1), o no hay una dirección clara (0):
+     *  - Blando + Agresivo + Seco -> alta (controla el calor y desgaste extremos de esa combinación)
+     *  - Duro + Ahorro -> baja (ayuda a poner en temperatura un compuesto que ya cuesta calentar)
+     *  - Carga aerodinámica Baja -> alta (setup de velocidad punta: menos resistencia a la rodadura)
+     *  - Carga aerodinámica Alta -> baja (setup de curvas técnicas: más agarre mecánico)
+     *  - Neumático de lluvia (intermedio o lluvia) en pista mojada -> baja (más agarre mecánico)
+     * Cuando varias combinaciones aplican a la vez, se suman; si no aplica ninguna (ej. Medio +
+     * Normal + Seco), el resultado es 0 y no hay dirección favorable.
+     */
+    private int direccionPresionFavorable(TipoNeumatico neumatico, Clima climaReal, ModoConduccion modo, CargaAerodinamica carga) {
+        boolean climaMojado = climaReal == Clima.LLUVIOSO || climaReal == Clima.EXTREMO;
+        int puntaje = 0;
+
+        if (neumatico == TipoNeumatico.BLANDO && modo == ModoConduccion.AGRESIVO && !climaMojado) {
+            puntaje += 1;
+        }
+        if (neumatico == TipoNeumatico.DURO && modo == ModoConduccion.AHORRO) {
+            puntaje -= 1;
+        }
+        if (carga == CargaAerodinamica.BAJA) {
+            puntaje += 1;
+        }
+        if (carga == CargaAerodinamica.ALTA) {
+            puntaje -= 1;
+        }
+        if (neumatico != null && neumatico.isParaLluvia() && climaMojado) {
+            puntaje -= 1;
+        }
+
+        return Integer.signum(puntaje);
+    }
+
     // A partir de qué nivel de desgaste (cercano al máximo de 100) el piloto entra a boxes a cambiar neumáticos.
     private static final double UMBRAL_DESGASTE_PIT = 95.0;
     // Tiempo perdido por una parada en boxes (calle de pits + cambio de neumáticos), en segundos.
@@ -255,8 +318,27 @@ public class SimuladorCarrera {
     private static final double UMBRAL_DESGASTE_RIESGOSO = 95.0;
     private static final double MULTIPLICADOR_RIESGO_DESGASTE = 1.6;
 
-    /** Resultado de simular vuelta por vuelta a un piloto: tiempos, desgaste y en qué vueltas paró en boxes. */
-    private record VueltasSimuladas(List<Double> tiempos, List<Double> desgaste, List<Integer> vueltasDePit) {
+    // Temperaturas de referencia (°C) en condiciones normales, antes de aplicar compuesto/modo/clima/desgaste.
+    private static final double TEMP_LLANTA_BASE = 90.0;
+    private static final double TEMP_MOTOR_BASE = 95.0;
+
+    /** Resultado de simular vuelta por vuelta a un piloto: tiempos, desgaste, paradas y temperaturas. */
+    private record VueltasSimuladas(List<Double> tiempos, List<Double> desgaste, List<Integer> vueltasDePit,
+                                     List<Double> temperaturaLlantas, List<Double> temperaturaMotor) {
+    }
+
+    /** Cuánto más caliente (o frío) corre cada compuesto, comparado con la temperatura base de neumático. */
+    private double factorTemperaturaCompuesto(TipoNeumatico neumatico) {
+        if (neumatico == null) {
+            return 0.0;
+        }
+        return switch (neumatico) {
+            case BLANDO -> 8.0;
+            case MEDIO -> 3.0;
+            case DURO -> -4.0;
+            case INTERMEDIO -> -3.0;
+            case LLUVIA -> -6.0;
+        };
     }
 
     /**
@@ -270,6 +352,8 @@ public class SimuladorCarrera {
         List<Double> tiempos = new ArrayList<>();
         List<Double> desgaste = new ArrayList<>();
         List<Integer> vueltasDePit = new ArrayList<>();
+        List<Double> temperaturaLlantas = new ArrayList<>();
+        List<Double> temperaturaMotor = new ArrayList<>();
 
         TipoNeumatico neumaticoActual = monoplaza != null ? monoplaza.getTipoNeumatico() : null;
         boolean climaMojado = climaReal == Clima.LLUVIOSO || climaReal == Clima.EXTREMO;
@@ -304,6 +388,22 @@ public class SimuladorCarrera {
             tiempos.add(tiempoVuelta);
             desgaste.add(acumuladoDesgaste);
 
+            // Temperaturas: suben con compuestos más blandos, conducción más agresiva, más
+            // desgaste acumulado, y bajan con clima mojado (refrigeración del agua). Con algo de
+            // variación vuelta a vuelta para que se vea que van cambiando, no un número fijo.
+            double tempLlanta = TEMP_LLANTA_BASE
+                    + factorTemperaturaCompuesto(neumaticoActual)
+                    + (factorModo - 1.0) * 10.0
+                    + (acumuladoDesgaste / 100.0) * 8.0
+                    + (climaMojado ? -10.0 : 0.0)
+                    + random.nextGaussian() * 2.5;
+            temperaturaLlantas.add(tempLlanta);
+
+            double tempMotor = TEMP_MOTOR_BASE
+                    + (factorModo - 1.0) * 15.0
+                    + random.nextGaussian() * 3.0;
+            temperaturaMotor.add(tempMotor);
+
             if (neumaticoActual != null && acumuladoDesgaste >= UMBRAL_DESGASTE_PIT && vuelta < vueltas) {
                 tiempos.set(tiempos.size() - 1, tiempos.get(tiempos.size() - 1) + TIEMPO_PERDIDO_EN_PIT);
                 vueltasDePit.add(vuelta);
@@ -312,7 +412,7 @@ public class SimuladorCarrera {
             }
         }
 
-        return new VueltasSimuladas(tiempos, desgaste, vueltasDePit);
+        return new VueltasSimuladas(tiempos, desgaste, vueltasDePit, temperaturaLlantas, temperaturaMotor);
     }
 
     /** Al entrar a boxes: si el compuesto actual ya era el correcto para el clima, se pone un juego nuevo del mismo; si no, se cambia a uno adecuado. */

@@ -42,6 +42,8 @@ public class ResultadoCarrera {
         private List<Double> tiemposPorVuelta = new ArrayList<>();
     private List<Double> desgastePorVuelta = new ArrayList<>(); // desgaste de neumáticos (0-100) al final de cada vuelta
     private List<Integer> vueltasDePit = new ArrayList<>(); // en qué vueltas entró a boxes a cambiar neumáticos
+    private List<Double> temperaturaLlantasPorVuelta = new ArrayList<>(); // °C al final de cada vuelta
+    private List<Double> temperaturaMotorPorVuelta = new ArrayList<>(); // °C al final de cada vuelta
     private double velocidadMaximaAlcanzada;
     private boolean dnf;
     private double progresoChoque; // vueltas completadas al momento del choque (ej. 5.375), solo válido si dnf
@@ -97,6 +99,22 @@ public class ResultadoCarrera {
 
     public void setVueltasDePit(List<Integer> vueltasDePit) {
         this.vueltasDePit = vueltasDePit;
+    }
+
+    public List<Double> getTemperaturaLlantasPorVuelta() {
+        return temperaturaLlantasPorVuelta;
+    }
+
+    public void setTemperaturaLlantasPorVuelta(List<Double> temperaturaLlantasPorVuelta) {
+        this.temperaturaLlantasPorVuelta = temperaturaLlantasPorVuelta;
+    }
+
+    public List<Double> getTemperaturaMotorPorVuelta() {
+        return temperaturaMotorPorVuelta;
+    }
+
+    public void setTemperaturaMotorPorVuelta(List<Double> temperaturaMotorPorVuelta) {
+        this.temperaturaMotorPorVuelta = temperaturaMotorPorVuelta;
     }
 
     /** En qué vueltas entró a boxes, solo contando las que ocurrieron antes de terminar de correr. */

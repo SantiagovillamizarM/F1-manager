@@ -12,6 +12,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -29,6 +30,7 @@ public class VehiculosConfigurarPane extends VBox {
     private final HBox filaCargas = new HBox(14);
     private final HBox filaModos = new HBox(14);
     private final HBox filaNeumaticos = new HBox(14);
+    private final TextField campoPresion = new TextField();
     private final Label mensaje = new Label();
 
     public VehiculosConfigurarPane() {
@@ -72,6 +74,12 @@ public class VehiculosConfigurarPane extends VBox {
             actualizarSeleccionVisual(filaNeumaticos, o.toString());
         });
 
+        Label etiquetaPresion = new Label(String.format("Presión de aire (PSI, entre %.0f y %.0f)",
+                Monoplaza.PRESION_MINIMA, Monoplaza.PRESION_MAXIMA));
+        etiquetaPresion.getStyleClass().add("etiqueta-campo");
+        campoPresion.getStyleClass().add("campo-texto");
+        campoPresion.setPromptText("Ej: " + (int) Monoplaza.PRESION_OPTIMA);
+
         mensaje.setWrapText(true);
 
         Button guardar = new Button("GUARDAR");
@@ -85,6 +93,7 @@ public class VehiculosConfigurarPane extends VBox {
             cargaSeleccionada = null;
             modoSeleccionado = null;
             neumaticoSeleccionado = null;
+            campoPresion.clear();
             filaCargas.getChildren().forEach(n -> n.getStyleClass().setAll("opcion-clima"));
             filaModos.getChildren().forEach(n -> n.getStyleClass().setAll("opcion-clima"));
             filaNeumaticos.getChildren().forEach(n -> n.getStyleClass().setAll("opcion-clima"));
@@ -99,6 +108,7 @@ public class VehiculosConfigurarPane extends VBox {
                 etiquetaCarga, filaCargas,
                 etiquetaModo, filaModos,
                 etiquetaNeumatico, filaNeumaticos,
+                etiquetaPresion, campoPresion,
                 mensaje, botones
         );
 
@@ -134,6 +144,7 @@ public class VehiculosConfigurarPane extends VBox {
         actualizarSeleccionVisual(filaCargas, cargaSeleccionada.toString());
         actualizarSeleccionVisual(filaModos, modoSeleccionado.toString());
         actualizarSeleccionVisual(filaNeumaticos, neumaticoSeleccionado.toString());
+        campoPresion.setText(String.valueOf(m.getPresionAire()));
     }
 
     private void guardar() {
@@ -142,7 +153,7 @@ public class VehiculosConfigurarPane extends VBox {
                 throw new ValidacionException("Debe seleccionar un modelo de vehículo.");
             }
             DataStore.getInstancia().configurarVehiculo(comboVehiculo.getValue().getId(), cargaSeleccionada, modoSeleccionado,
-                    neumaticoSeleccionado);
+                    neumaticoSeleccionado, campoPresion.getText());
             mensaje.getStyleClass().removeAll("error-label");
             mensaje.getStyleClass().add("texto-rojo");
             mensaje.setText("Configuración guardada correctamente para " + comboVehiculo.getValue().getModelo() + ".");

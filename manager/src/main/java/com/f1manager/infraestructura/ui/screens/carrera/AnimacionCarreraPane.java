@@ -10,6 +10,7 @@ import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -47,11 +48,19 @@ public class AnimacionCarreraPane extends BorderPane {
     private final Slider sliderVelocidadSimulacion = new Slider(0.25, 3.0, 0.5);
     private final Label etiquetaVelocidadSimulacion = new Label();
     private final Map<Piloto, ResultadoCarrera> resultadoPorPiloto = new LinkedHashMap<>();
+    // Un Label estable por piloto, creado una sola vez: si se recrearan cada fotograma (60/s), un
+    // clic real del usuario (más lento que eso) nunca llegaría a completarse sobre el mismo nodo
+    // y el evento de clic jamás se disparaba. Cada fotograma solo se actualiza su texto/estilo y
+    // se reordenan los mismos objetos, nunca se destruyen.
+    private final Map<Piloto, Label> etiquetasEnVivo = new LinkedHashMap<>();
     // Estado de la pausa visual en boxes de cada piloto (parar unos segundos en la línea de salida).
     private final Map<Piloto, Double> atrasoPitMs = new HashMap<>();
     private final Map<Piloto, Boolean> pausaPitActiva = new HashMap<>();
     private final Map<Piloto, Double> inicioPausaPitMs = new HashMap<>();
     private final Map<Piloto, Integer> siguienteIndicePit = new HashMap<>();
+    // Panel de detalle en vivo: se despliega al hacer clic en un piloto de la tabla "EN VIVO".
+    private final VBox panelDetallePiloto = new VBox(6);
+    private Piloto pilotoSeleccionado;
     private AnimationTimer timer;
     private long ultimoFrameNs = -1;
     private double msSimuladosAcumulados = 0;
@@ -73,9 +82,16 @@ public class AnimacionCarreraPane extends BorderPane {
         double tiempoLider = resultados.get(0).getTiempoSegundos();
         int i = 0;
         for (ResultadoCarrera r : resultados) {
-            colores.put(r.getPiloto(), PALETA[i % PALETA.length]);
-            factorVelocidad.put(r.getPiloto(), tiempoLider / r.getTiempoSegundos());
+            Piloto p = r.getPiloto();
+            colores.put(p, PALETA[i % PALETA.length]);
+            factorVelocidad.put(p, tiempoLider / r.getTiempoSegundos());
             i++;
+
+            Label etiqueta = new Label();
+            etiqueta.setWrapText(true);
+            etiqueta.setCursor(javafx.scene.Cursor.HAND);
+            etiqueta.setOnMouseClicked(e -> pilotoSeleccionado = p);
+            etiquetasEnVivo.put(p, etiqueta);
         }
 
         setPadding(new Insets(10));
@@ -93,7 +109,21 @@ public class AnimacionCarreraPane extends BorderPane {
 
         Label tituloClasificacion = new Label("EN VIVO");
         tituloClasificacion.getStyleClass().add("texto-rojo");
-        VBox panelDerecho = new VBox(12, tituloClasificacion, columnaClasificacionEnVivo);
+        panelDetallePiloto.setMinHeight(90);
+        panelDetallePiloto.setStyle("-fx-border-color: #232a3d; -fx-border-width: 1 0 0 0;");
+        panelDetallePiloto.setPadding(new Insets(10, 0, 0, 0));
+        mostrarMensajeSinSeleccion();
+
+        // La lista va en su propio scroll con altura acotada, para que el panel de detalle de
+        // abajo SIEMPRE tenga su espacio reservado y visible (si no, con filas largas la lista
+        // se comía todo el alto del panel y el detalle quedaba empujado fuera de la vista).
+        ScrollPane scrollClasificacion = new ScrollPane(columnaClasificacionEnVivo);
+        scrollClasificacion.setFitToWidth(true);
+        scrollClasificacion.getStyleClass().add("scroll-oscuro");
+        scrollClasificacion.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        VBox.setVgrow(scrollClasificacion, Priority.ALWAYS);
+
+        VBox panelDerecho = new VBox(12, tituloClasificacion, scrollClasificacion, panelDetallePiloto);
         panelDerecho.getStyleClass().add("panel");
         panelDerecho.setPadding(new Insets(18));
         panelDerecho.setPrefWidth(300);
@@ -205,6 +235,7 @@ public class AnimacionCarreraPane extends BorderPane {
         }
 
         actualizarClasificacionEnVivo(ordenActual, vueltasAvanzadas, chocados, enBoxes, transcurridoMs);
+        actualizarDetallePiloto(vueltasAvanzadas);
     }
 
     /**
@@ -249,10 +280,10 @@ public class AnimacionCarreraPane extends BorderPane {
 
     private void actualizarClasificacionEnVivo(List<Piloto> orden, Map<Piloto, Double> vueltasAvanzadas,
                                                 Set<Piloto> chocados, Set<Piloto> enBoxes, long transcurridoMs) {
-        columnaClasificacionEnVivo.getChildren().clear();
         double segundosTranscurridos = transcurridoMs / 1000.0;
         String tiempo = ResultadoCarrera.formatearTiempo(segundosTranscurridos);
 
+        List<Label> enOrden = new ArrayList<>(orden.size());
         int posicion = 1;
         for (Piloto p : orden) {
             boolean choco = chocados.contains(p);
@@ -267,15 +298,68 @@ public class AnimacionCarreraPane extends BorderPane {
                 colorTexto = "#ffd400";
             } else {
                 estado = "Vuelta " + Math.min(circuito.getVueltas(), (int) Math.floor(vueltasAvanzadas.get(p)) + 1)
-                        + "/" + circuito.getVueltas() + "   ·   " + tiempo;
+                        + "/" + circuito.getVueltas() + "   ·   " + tiempo
+                        + "   ·   Llantas " + (int) Math.round(valorPorVueltaActual(
+                                resultadoPorPiloto.get(p).getDesgastePorVuelta(), vueltasAvanzadas.get(p))) + "/100";
                 colorTexto = toHex(colores.get(p));
             }
-            Label linea = new Label(posicion + "  " + p.getNombre() + "   ·   " + p.getEquipo() + "   ·   " + estado);
-            linea.setStyle("-fx-text-fill: " + colorTexto + "; -fx-font-size: 11px; -fx-font-weight: bold;");
-            linea.setWrapText(true);
-            columnaClasificacionEnVivo.getChildren().add(linea);
+            String prefijo = p.equals(pilotoSeleccionado) ? "▶ " : "";
+            Label etiqueta = etiquetasEnVivo.get(p);
+            etiqueta.setText(prefijo + posicion + "  " + p.getNombre() + "   ·   " + p.getEquipo() + "   ·   " + estado);
+            etiqueta.setStyle("-fx-text-fill: " + colorTexto + "; -fx-font-size: 11px; -fx-font-weight: bold;");
+            enOrden.add(etiqueta);
             posicion++;
         }
+        // Se reordenan los MISMOS objetos Label (nunca se destruyen ni se crean nuevos), para que
+        // sus manejadores de clic sigan siendo válidos entre un fotograma y el siguiente.
+        columnaClasificacionEnVivo.getChildren().setAll(enOrden);
+    }
+
+    private void mostrarMensajeSinSeleccion() {
+        panelDetallePiloto.getChildren().clear();
+        Label mensaje = new Label("Toca un piloto de la lista\npara ver su detalle en vivo.");
+        mensaje.getStyleClass().add("texto-secundario");
+        mensaje.setWrapText(true);
+        mensaje.setStyle("-fx-font-size: 11px;");
+        panelDetallePiloto.getChildren().add(mensaje);
+    }
+
+    /** Refresca el panel de detalle (desgaste, temperatura de llantas y de motor) del piloto seleccionado. */
+    private void actualizarDetallePiloto(Map<Piloto, Double> vueltasAvanzadas) {
+        if (pilotoSeleccionado == null) {
+            mostrarMensajeSinSeleccion();
+            return;
+        }
+        ResultadoCarrera resultado = resultadoPorPiloto.get(pilotoSeleccionado);
+        double vueltas = vueltasAvanzadas.getOrDefault(pilotoSeleccionado, 0.0);
+
+        Label titulo = new Label(pilotoSeleccionado.getNombre());
+        titulo.getStyleClass().add("texto-rojo");
+        titulo.setStyle("-fx-font-size: 12px; -fx-font-weight: bold;");
+
+        Label desgaste = new Label(String.format("Desgaste de las llantas: %.0f/100",
+                valorPorVueltaActual(resultado.getDesgastePorVuelta(), vueltas)));
+        Label tempLlantas = new Label(String.format("Temperatura de llantas: %.0f °C",
+                valorPorVueltaActual(resultado.getTemperaturaLlantasPorVuelta(), vueltas)));
+        Label tempMotor = new Label(String.format("Temperatura de motor: %.0f °C",
+                valorPorVueltaActual(resultado.getTemperaturaMotorPorVuelta(), vueltas)));
+        for (Label l : List.of(desgaste, tempLlantas, tempMotor)) {
+            l.getStyleClass().add("texto-normal");
+            l.setStyle("-fx-font-size: 11px;");
+            l.setWrapText(true);
+        }
+
+        VBox caja = new VBox(4, titulo, desgaste, tempLlantas, tempMotor);
+        panelDetallePiloto.getChildren().setAll(caja);
+    }
+
+    /** Valor de una lista por-vuelta (desgaste o temperatura) correspondiente a la vuelta actual. */
+    private double valorPorVueltaActual(List<Double> valoresPorVuelta, double vueltasAvanzadas) {
+        if (valoresPorVuelta.isEmpty()) {
+            return 0;
+        }
+        int indice = Math.max(0, Math.min(valoresPorVuelta.size() - 1, (int) Math.floor(vueltasAvanzadas)));
+        return valoresPorVuelta.get(indice);
     }
 
     private String toHex(Color c) {
