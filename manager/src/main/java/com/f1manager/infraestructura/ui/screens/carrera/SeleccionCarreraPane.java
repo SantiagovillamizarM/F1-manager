@@ -37,26 +37,36 @@ public class SeleccionCarreraPane extends BorderPane {
     private VBox filaCircuitoSeleccionada;
 
     public SeleccionCarreraPane(BiConsumer<Circuito, Clima> alEmpezar) {
+        this(alEmpezar, null);
+    }
+
+    /**
+     * @param circuitoFijo si no es null (modo campeonato: la fecha del calendario ya determina
+     *                     el circuito), se omite la lista de selección y queda preseleccionado.
+     */
+    public SeleccionCarreraPane(BiConsumer<Circuito, Clima> alEmpezar, Circuito circuitoFijo) {
         setPadding(new Insets(10));
 
-        // ---- Izquierda: lista de circuitos ----
-        Label tituloCircuitos = new Label("Circuitos disponibles");
-        tituloCircuitos.getStyleClass().add("titulo-seccion");
+        if (circuitoFijo == null) {
+            // ---- Izquierda: lista de circuitos ----
+            Label tituloCircuitos = new Label("Circuitos disponibles");
+            tituloCircuitos.getStyleClass().add("titulo-seccion");
 
-        ScrollPane scroll = new ScrollPane(columnaCircuitos);
-        scroll.setFitToWidth(true);
-        scroll.setPrefWidth(360);
-        scroll.getStyleClass().add("scroll-oscuro");
-        scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+            ScrollPane scroll = new ScrollPane(columnaCircuitos);
+            scroll.setFitToWidth(true);
+            scroll.setPrefWidth(360);
+            scroll.getStyleClass().add("scroll-oscuro");
+            scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
-        for (Circuito c : DataStore.getInstancia().getCircuitos()) {
-            columnaCircuitos.getChildren().add(construirFilaCircuito(c));
+            for (Circuito c : DataStore.getInstancia().getCircuitos()) {
+                columnaCircuitos.getChildren().add(construirFilaCircuito(c));
+            }
+
+            VBox columnaIzquierda = new VBox(16, tituloCircuitos, scroll);
+            columnaIzquierda.setPadding(new Insets(0, 20, 0, 0));
+            columnaIzquierda.setPrefWidth(380);
+            setLeft(columnaIzquierda);
         }
-
-        VBox columnaIzquierda = new VBox(16, tituloCircuitos, scroll);
-        columnaIzquierda.setPadding(new Insets(0, 20, 0, 0));
-        columnaIzquierda.setPrefWidth(380);
-        setLeft(columnaIzquierda);
 
         // ---- Centro: pista + clima + botón ----
         nombreCircuitoLabel.getStyleClass().add("titulo-seccion");
@@ -103,6 +113,10 @@ public class SeleccionCarreraPane extends BorderPane {
         scrollCentro.getStyleClass().add("scroll-oscuro");
         scrollCentro.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         setCenter(scrollCentro);
+
+        if (circuitoFijo != null) {
+            seleccionarCircuito(circuitoFijo, null);
+        }
     }
 
     private VBox construirFilaCircuito(Circuito circuito) {
@@ -118,13 +132,16 @@ public class SeleccionCarreraPane extends BorderPane {
     }
 
     private void seleccionarCircuito(Circuito circuito, VBox fila) {
-        if (filaCircuitoSeleccionada != null) {
-            filaCircuitoSeleccionada.getStyleClass().remove("fila-lista-seleccionada");
-            filaCircuitoSeleccionada.getStyleClass().add("fila-lista");
+        // fila es null en modo campeonato (circuito fijo, sin lista para elegir).
+        if (fila != null) {
+            if (filaCircuitoSeleccionada != null) {
+                filaCircuitoSeleccionada.getStyleClass().remove("fila-lista-seleccionada");
+                filaCircuitoSeleccionada.getStyleClass().add("fila-lista");
+            }
+            fila.getStyleClass().remove("fila-lista");
+            fila.getStyleClass().add("fila-lista-seleccionada");
+            filaCircuitoSeleccionada = fila;
         }
-        fila.getStyleClass().remove("fila-lista");
-        fila.getStyleClass().add("fila-lista-seleccionada");
-        filaCircuitoSeleccionada = fila;
 
         circuitoSeleccionado = circuito;
         nombreCircuitoLabel.setText(circuito.getNombre() + " — " + circuito.getPais());

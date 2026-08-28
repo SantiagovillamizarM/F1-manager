@@ -7,6 +7,7 @@ com\f1manager\infraestructura\ui\ModuloGestionBase.class
 com\f1manager\infraestructura\ui\screens\pilotos\PilotosEliminarPane.class
 com\f1manager\infraestructura\ui\screens\circuitos\CircuitosEliminarPane.class
 com\f1manager\infraestructura\ui\screens\equipos\EquiposRegistrarPane.class
+com\f1manager\infraestructura\ui\screens\campeonato\BienvenidaCampeonatoPane.class
 com\f1manager\infraestructura\ui\components\CampoBusqueda.class
 com\f1manager\dominio\modelo\Piloto.class
 com\f1manager\infraestructura\ui\components\BarraMiniIconos$Item.class
@@ -17,6 +18,7 @@ com\f1manager\dominio\servicio\SimuladorCarrera$ResultadoSimulacion.class
 com\f1manager\infraestructura\ui\screens\circuitos\ModuloCircuitos.class
 com\f1manager\infraestructura\ui\screens\circuitos\CircuitosListarPane.class
 com\f1manager\dominio\modelo\RolPiloto.class
+com\f1manager\dominio\modelo\Campeonato.class
 com\f1manager\infraestructura\ui\screens\pilotos\PilotosRegistrarPane.class
 com\f1manager\infraestructura\ui\screens\carrera\SeleccionCarreraPane.class
 com\f1manager\dominio\servicio\SimuladorCarrera$VueltasSimuladas.class
@@ -31,6 +33,7 @@ com\f1manager\dominio\servicio\SimuladorCarrera$1.class
 com\f1manager\infraestructura\ui\util\PistaGenerador.class
 com\f1manager\dominio\modelo\Circuito.class
 com\f1manager\infraestructura\ui\components\FondoAnimado$1.class
+com\f1manager\infraestructura\ui\screens\campeonato\TablaPosicionesPane.class
 com\f1manager\infraestructura\ui\screens\carrera\ResultadosCarreraPane.class
 com\f1manager\dominio\modelo\Clima.class
 com\f1manager\infraestructura\ui\screens\circuitos\CircuitosRegistrarPane.class
@@ -40,10 +43,12 @@ com\f1manager\infraestructura\ui\screens\equipos\EquiposEliminarPane.class
 com\f1manager\infraestructura\ui\screens\vehiculos\VehiculosListarPane.class
 com\f1manager\infraestructura\ui\screens\carrera\AnimacionCarreraPane$1.class
 com\f1manager\infraestructura\ui\components\FondoAnimado.class
+com\f1manager\infraestructura\ui\screens\campeonato\PantallaCampeonato.class
 com\f1manager\infraestructura\ui\screens\equipos\ModuloEquipos.class
 com\f1manager\dominio\modelo\Equipo.class
 com\f1manager\dominio\modelo\Monoplaza.class
 com\f1manager\infraestructura\ui\util\GestorEscenas.class
+com\f1manager\infraestructura\ui\screens\campeonato\CampeonPane.class
 com\f1manager\infraestructura\ui\screens\equipos\EquiposListarPane.class
 com\f1manager\Main.class
 com\f1manager\infraestructura\persistencia\DataStore.class

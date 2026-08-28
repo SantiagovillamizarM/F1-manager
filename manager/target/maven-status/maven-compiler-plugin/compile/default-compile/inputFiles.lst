@@ -1,4 +1,5 @@
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\dominio\excepcion\ValidacionException.java
+C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\dominio\modelo\Campeonato.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\dominio\modelo\CargaAerodinamica.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\dominio\modelo\Circuito.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\dominio\modelo\Clima.java
@@ -18,6 +19,10 @@ C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraes
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\MenuPrincipal.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\ModuloGestionBase.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\PantallaBienvenida.java
+C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\campeonato\BienvenidaCampeonatoPane.java
+C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\campeonato\CampeonPane.java
+C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\campeonato\PantallaCampeonato.java
+C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\campeonato\TablaPosicionesPane.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\carrera\AnimacionCarreraPane.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\carrera\PantallaCarrera.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\carrera\ResultadosCarreraPane.java

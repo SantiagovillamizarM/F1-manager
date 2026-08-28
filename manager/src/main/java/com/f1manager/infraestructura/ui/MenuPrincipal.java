@@ -2,6 +2,7 @@ package com.f1manager.infraestructura.ui;
 
 import com.f1manager.infraestructura.ui.util.GestorEscenas;
 import com.f1manager.infraestructura.ui.components.TarjetaOpcion;
+import com.f1manager.infraestructura.ui.screens.campeonato.PantallaCampeonato;
 import com.f1manager.infraestructura.ui.screens.carrera.PantallaCarrera;
 import com.f1manager.infraestructura.ui.screens.circuitos.ModuloCircuitos;
 import com.f1manager.infraestructura.ui.screens.equipos.ModuloEquipos;
@@ -54,10 +55,14 @@ public class MenuPrincipal extends BorderPane {
         tituloCompetencia.getStyleClass().add("titulo-seccion");
 
         TarjetaOpcion tarjetaCarrera = new TarjetaOpcion(
-                IconFactory.contenedor(IconFactory.banderaCuadros(), 80),
-                "CARRERA", () -> gestor.navegarA(new PantallaCarrera(gestor)), true);
+                IconFactory.contenedor(IconFactory.banderaCuadros(), 60),
+                "CARRERA", () -> gestor.navegarA(new PantallaCarrera(gestor)), false);
 
-        VBox columnaCarrera = new VBox(20, tituloCompetencia, tarjetaCarrera);
+        TarjetaOpcion tarjetaCampeonato = new TarjetaOpcion(
+                IconFactory.contenedor(IconFactory.escudoEquipo(IconFactory.BLANCO), 60),
+                "MODO CAMPEONATO", () -> gestor.navegarA(new PantallaCampeonato(gestor)), false);
+
+        VBox columnaCarrera = new VBox(20, tituloCompetencia, tarjetaCarrera, tarjetaCampeonato);
         columnaCarrera.setPadding(new Insets(10, 10, 10, 30));
 
         HBox cuerpo = new HBox(10, columnaAdmin, new Separator(javafx.geometry.Orientation.VERTICAL), columnaCarrera);

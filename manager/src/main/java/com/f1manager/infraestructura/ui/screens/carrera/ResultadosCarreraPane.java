@@ -25,6 +25,13 @@ public class ResultadosCarreraPane extends VBox {
 
     public ResultadosCarreraPane(Circuito circuito, SimuladorCarrera.ResultadoSimulacion simulacion,
                                   Runnable nuevaCarrera, Runnable alMenu) {
+        this(circuito, simulacion, "NUEVA CARRERA", nuevaCarrera, "MENÚ PRINCIPAL", alMenu);
+    }
+
+    /** Permite personalizar el texto y la acción de los dos botones (usado por el modo campeonato). */
+    public ResultadosCarreraPane(Circuito circuito, SimuladorCarrera.ResultadoSimulacion simulacion,
+                                  String textoBoton1, Runnable accionBoton1,
+                                  String textoBoton2, Runnable accionBoton2) {
         setSpacing(20);
         setPadding(new Insets(10));
 
@@ -62,15 +69,15 @@ public class ResultadosCarreraPane extends VBox {
         HBox cuerpo = new HBox(24, scroll, panelDetalle);
         cuerpo.setAlignment(Pos.TOP_CENTER);
 
-        Button botonNuevaCarrera = new Button("NUEVA CARRERA");
-        botonNuevaCarrera.getStyleClass().add("boton-primario");
-        botonNuevaCarrera.setOnAction(e -> nuevaCarrera.run());
+        Button boton1 = new Button(textoBoton1);
+        boton1.getStyleClass().add("boton-primario");
+        boton1.setOnAction(e -> accionBoton1.run());
 
-        Button botonMenu = new Button("MENÚ PRINCIPAL");
-        botonMenu.getStyleClass().add("boton-secundario");
-        botonMenu.setOnAction(e -> alMenu.run());
+        Button boton2 = new Button(textoBoton2);
+        boton2.getStyleClass().add("boton-secundario");
+        boton2.setOnAction(e -> accionBoton2.run());
 
-        HBox botones = new HBox(14, botonNuevaCarrera, botonMenu);
+        HBox botones = new HBox(14, boton1, boton2);
         botones.setAlignment(Pos.CENTER);
         botones.setPadding(new Insets(10, 0, 0, 0));
 
