@@ -34,7 +34,11 @@ public class VehiculosListarPane extends HBox {
         scroll.setFitToWidth(true);
         scroll.getStyleClass().add("scroll-oscuro");
         scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        scroll.setPrefWidth(480);
+        // Ancho proporcional al del panel completo (no un valor fijo), para que la
+        // lista y el detalle mantengan una proporción equilibrada sin importar cuánto
+        // espacio termine sobrando (antes el detalle se quedaba con todo lo restante).
+        scroll.prefWidthProperty().bind(widthProperty().multiply(0.42));
+        scroll.setMinWidth(340);
         scroll.setPrefHeight(560);
 
         panelDetalle.getStyleClass().add("panel");
@@ -42,6 +46,7 @@ public class VehiculosListarPane extends HBox {
         panelDetalle.setPadding(new Insets(28));
         mostrarMensajeVacio();
 
+        HBox.setHgrow(scroll, Priority.NEVER);
         HBox.setHgrow(panelDetalle, Priority.ALWAYS);
         getChildren().addAll(scroll, panelDetalle);
 

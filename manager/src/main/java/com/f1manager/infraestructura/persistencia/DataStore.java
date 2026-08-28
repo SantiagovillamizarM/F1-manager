@@ -47,18 +47,19 @@ public final class DataStore {
         equipos.add(new Equipo("Alpine", "Francia", "Renault"));
 
         // ---- Pilotos ----
-        pilotos.add(new Piloto(sigId(idPilotos), "Lewis Hamilton", "Mercedes-AMG Petronas", RolPiloto.LIDER, 18, 96));
-        pilotos.add(new Piloto(sigId(idPilotos), "George Russell", "Mercedes-AMG Petronas", RolPiloto.ESCUDERO, 5, 88));
-        pilotos.add(new Piloto(sigId(idPilotos), "Charles Leclerc", "Scuderia Ferrari", RolPiloto.LIDER, 7, 93));
-        pilotos.add(new Piloto(sigId(idPilotos), "Carlos Sainz", "Scuderia Ferrari", RolPiloto.ESCUDERO, 9, 89));
-        pilotos.add(new Piloto(sigId(idPilotos), "Max Verstappen", "Red Bull Racing", RolPiloto.LIDER, 10, 99));
-        pilotos.add(new Piloto(sigId(idPilotos), "Sergio Pérez", "Red Bull Racing", RolPiloto.ESCUDERO, 13, 85));
-        pilotos.add(new Piloto(sigId(idPilotos), "Lando Norris", "McLaren", RolPiloto.LIDER, 6, 91));
-        pilotos.add(new Piloto(sigId(idPilotos), "Oscar Piastri", "McLaren", RolPiloto.ESCUDERO, 2, 86));
-        pilotos.add(new Piloto(sigId(idPilotos), "Fernando Alonso", "Aston Martin", RolPiloto.LIDER, 22, 92));
-        pilotos.add(new Piloto(sigId(idPilotos), "Lance Stroll", "Aston Martin", RolPiloto.ESCUDERO, 7, 78));
-        pilotos.add(new Piloto(sigId(idPilotos), "Pierre Gasly", "Alpine", RolPiloto.LIDER, 8, 84));
-        pilotos.add(new Piloto(sigId(idPilotos), "Esteban Ocon", "Alpine", RolPiloto.ESCUDERO, 8, 82));
+        // Orden de habilidades: curva, adelantamiento, recta, lluvia, seco, extremo
+        pilotos.add(new Piloto(sigId(idPilotos), "Lewis Hamilton", "Mercedes-AMG Petronas", RolPiloto.LIDER, 18, 95, 94, 90, 97, 96, 95));
+        pilotos.add(new Piloto(sigId(idPilotos), "George Russell", "Mercedes-AMG Petronas", RolPiloto.ESCUDERO, 5, 87, 85, 88, 82, 88, 80));
+        pilotos.add(new Piloto(sigId(idPilotos), "Charles Leclerc", "Scuderia Ferrari", RolPiloto.LIDER, 7, 96, 88, 90, 85, 93, 84));
+        pilotos.add(new Piloto(sigId(idPilotos), "Carlos Sainz", "Scuderia Ferrari", RolPiloto.ESCUDERO, 9, 88, 90, 87, 84, 89, 83));
+        pilotos.add(new Piloto(sigId(idPilotos), "Max Verstappen", "Red Bull Racing", RolPiloto.LIDER, 10, 99, 97, 96, 98, 99, 98));
+        pilotos.add(new Piloto(sigId(idPilotos), "Sergio Pérez", "Red Bull Racing", RolPiloto.ESCUDERO, 13, 83, 86, 88, 80, 85, 75));
+        pilotos.add(new Piloto(sigId(idPilotos), "Lando Norris", "McLaren", RolPiloto.LIDER, 6, 91, 90, 89, 86, 91, 85));
+        pilotos.add(new Piloto(sigId(idPilotos), "Oscar Piastri", "McLaren", RolPiloto.ESCUDERO, 2, 86, 84, 85, 80, 86, 78));
+        pilotos.add(new Piloto(sigId(idPilotos), "Fernando Alonso", "Aston Martin", RolPiloto.LIDER, 22, 90, 95, 88, 90, 92, 93));
+        pilotos.add(new Piloto(sigId(idPilotos), "Lance Stroll", "Aston Martin", RolPiloto.ESCUDERO, 7, 76, 74, 78, 72, 78, 70));
+        pilotos.add(new Piloto(sigId(idPilotos), "Pierre Gasly", "Alpine", RolPiloto.LIDER, 8, 83, 82, 84, 83, 84, 79));
+        pilotos.add(new Piloto(sigId(idPilotos), "Esteban Ocon", "Alpine", RolPiloto.ESCUDERO, 8, 80, 83, 82, 78, 82, 77));
 
         // ---- Circuitos ----
         circuitos.add(new Circuito(sigId(idCircuitos), "Circuit de Monaco", "Mónaco", 3.337, 78,
@@ -146,8 +147,9 @@ public final class DataStore {
                 .collect(Collectors.toList());
     }
 
-    public Piloto registrarPiloto(String nombre, String equipo, RolPiloto rol,
-                                   String experienciaTexto, String habilidadTexto) throws ValidacionException {
+    public Piloto registrarPiloto(String nombre, String equipo, RolPiloto rol, String experienciaTexto,
+                                   String curvaTexto, String adelantamientoTexto, String rectaTexto,
+                                   String lluviaTexto, String secoTexto, String extremoTexto) throws ValidacionException {
         if (esVacio(nombre)) {
             throw new ValidacionException("El nombre del piloto es obligatorio.");
         }
@@ -162,12 +164,15 @@ public final class DataStore {
             throw new ValidacionException("Debe seleccionar un rol para el piloto.");
         }
         int experiencia = parsearEnteroNoNegativo(experienciaTexto, "Los años de experiencia deben ser un entero mayor o igual a 0.");
-        int habilidad = parsearEnteroPositivo(habilidadTexto, "La habilidad debe ser un entero entre 1 y 100.");
-        if (habilidad < 1 || habilidad > 100) {
-            throw new ValidacionException("La habilidad debe estar entre 1 y 100.");
-        }
+        int curva = parsearHabilidad(curvaTexto, "curva");
+        int adelantamiento = parsearHabilidad(adelantamientoTexto, "adelantamiento");
+        int recta = parsearHabilidad(rectaTexto, "recta");
+        int lluvia = parsearHabilidad(lluviaTexto, "lluvia");
+        int seco = parsearHabilidad(secoTexto, "seco");
+        int extremo = parsearHabilidad(extremoTexto, "clima extremo");
 
-        Piloto piloto = new Piloto(sigId(idPilotos), nombre.trim(), equipo, rol, experiencia, habilidad);
+        Piloto piloto = new Piloto(sigId(idPilotos), nombre.trim(), equipo, rol, experiencia,
+                curva, adelantamiento, recta, lluvia, seco, extremo);
         pilotos.add(piloto);
         return piloto;
     }
@@ -275,6 +280,14 @@ public final class DataStore {
         } catch (NumberFormatException e) {
             throw new ValidacionException(mensajeError);
         }
+    }
+
+    private static int parsearHabilidad(String texto, String etiqueta) throws ValidacionException {
+        int valor = parsearEnteroPositivo(texto, "La habilidad de " + etiqueta + " debe ser un entero entre 1 y 100.");
+        if (valor > 100) {
+            throw new ValidacionException("La habilidad de " + etiqueta + " debe estar entre 1 y 100.");
+        }
+        return valor;
     }
 
     private static int parsearEnteroNoNegativo(String texto, String mensajeError) throws ValidacionException {

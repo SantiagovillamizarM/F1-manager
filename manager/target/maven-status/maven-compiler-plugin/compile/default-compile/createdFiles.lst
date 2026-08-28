@@ -25,6 +25,7 @@ com\f1manager\infraestructura\ui\screens\carrera\AnimacionCarreraPane.class
 com\f1manager\infraestructura\ui\screens\carrera\PantallaCarrera.class
 com\f1manager\infraestructura\ui\screens\circuitos\PanelListaCircuitos.class
 com\f1manager\infraestructura\ui\screens\pilotos\ModuloPilotos.class
+com\f1manager\dominio\servicio\SimuladorCarrera$1.class
 com\f1manager\infraestructura\ui\util\PistaGenerador.class
 com\f1manager\dominio\modelo\Circuito.class
 com\f1manager\infraestructura\ui\components\FondoAnimado$1.class

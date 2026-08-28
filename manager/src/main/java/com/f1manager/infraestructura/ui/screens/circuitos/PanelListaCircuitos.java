@@ -33,7 +33,11 @@ public class PanelListaCircuitos extends HBox {
         scrollLista.setFitToWidth(true);
         scrollLista.getStyleClass().add("scroll-oscuro");
         scrollLista.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        scrollLista.setPrefWidth(520);
+        // Ancho proporcional al del panel completo (no un valor fijo), para que la
+        // lista y el detalle mantengan una proporción equilibrada sin importar cuánto
+        // espacio termine sobrando (antes el detalle se quedaba con todo lo restante).
+        scrollLista.prefWidthProperty().bind(widthProperty().multiply(0.42));
+        scrollLista.setMinWidth(340);
         scrollLista.setPrefHeight(560);
 
         panelDetalle.getStyleClass().add("panel");

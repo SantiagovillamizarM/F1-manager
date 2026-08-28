@@ -27,7 +27,11 @@ public class PanelListaPilotos extends HBox {
         scroll.setFitToWidth(true);
         scroll.getStyleClass().add("scroll-oscuro");
         scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        scroll.setPrefWidth(480);
+        // Ancho proporcional al del panel completo (no un valor fijo), para que la
+        // lista y la ficha mantengan una proporción equilibrada sin importar cuánto
+        // espacio termine sobrando (antes la ficha se quedaba con todo lo restante).
+        scroll.prefWidthProperty().bind(widthProperty().multiply(0.42));
+        scroll.setMinWidth(340);
         scroll.setPrefHeight(560);
 
         panelDetalle.getStyleClass().add("panel");
@@ -35,6 +39,7 @@ public class PanelListaPilotos extends HBox {
         panelDetalle.setPadding(new Insets(28));
         mostrarMensajeVacio();
 
+        HBox.setHgrow(scroll, Priority.NEVER);
         HBox.setHgrow(panelDetalle, Priority.ALWAYS);
         getChildren().addAll(scroll, panelDetalle);
 
@@ -61,8 +66,8 @@ public class PanelListaPilotos extends HBox {
         Label nombre = new Label(piloto.getNombre());
         nombre.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5f6fa;");
 
-        Label detalle = new Label(String.format("ID %d  ·  %s  ·  %s  ·  Habilidad %d/100",
-                piloto.getId(), piloto.getEquipo(), piloto.getRol().getEtiqueta(), piloto.getHabilidad()));
+        Label detalle = new Label(String.format("ID %d  ·  %s  ·  %s  ·  Habilidad prom. %.0f/100",
+                piloto.getId(), piloto.getEquipo(), piloto.getRol().getEtiqueta(), piloto.getHabilidadPromedio()));
         detalle.getStyleClass().add("texto-secundario");
 
         VBox fila = new VBox(4, nombre, detalle);
@@ -108,12 +113,35 @@ public class PanelListaPilotos extends HBox {
 
         agregarDato(datos, 0, "ID", String.valueOf(piloto.getId()));
         agregarDato(datos, 1, "Experiencia", piloto.getExperienciaAnios() + " años");
-        agregarDato(datos, 2, "Habilidad", piloto.getHabilidad() + " / 100");
+        agregarDato(datos, 2, "Habilidad prom.", String.format("%.0f / 100", piloto.getHabilidadPromedio()));
         agregarDato(datos, 3, "Rol", piloto.getRol().getEtiqueta());
 
-        VBox barraHabilidad = new VBox(6);
-        Label etiquetaBarra = new Label("Nivel de habilidad");
+        VBox barras = new VBox(14,
+                construirBarraHabilidad("Habilidad promedio", piloto.getHabilidadPromedio()),
+                construirBarraHabilidad("Habilidad en seco", piloto.getHabilidadSeco()),
+                construirBarraHabilidad("Habilidad en lluvia", piloto.getHabilidadLluvia()),
+                construirBarraHabilidad("Habilidad en clima extremo", piloto.getHabilidadExtremo()),
+                construirBarraHabilidad("Habilidad en curva", piloto.getHabilidadCurva()),
+                construirBarraHabilidad("Habilidad de adelantamiento", piloto.getHabilidadAdelantamiento()),
+                construirBarraHabilidad("Habilidad en recta", piloto.getHabilidadRecta())
+        );
+
+        VBox contenido = new VBox(20, encabezado, datos, barras);
+        panelDetalle.getChildren().setAll(contenido);
+    }
+
+    private VBox construirBarraHabilidad(String etiqueta, double valor) {
+        VBox barra = new VBox(6);
+        Label etiquetaBarra = new Label(etiqueta);
         etiquetaBarra.getStyleClass().add("etiqueta-campo");
+
+        Label valorBarra = new Label(Math.round(valor) + " / 100");
+        valorBarra.getStyleClass().add("texto-rojo");
+
+        Region espaciadorEncabezado = new Region();
+        HBox.setHgrow(espaciadorEncabezado, Priority.ALWAYS);
+        HBox encabezadoBarra = new HBox(etiquetaBarra, espaciadorEncabezado, valorBarra);
+
         Region fondoBarra = new Region();
         fondoBarra.setStyle("-fx-background-color: #232a3d; -fx-background-radius: 6;");
         fondoBarra.setPrefHeight(14);
@@ -121,13 +149,18 @@ public class PanelListaPilotos extends HBox {
         Region relleno = new Region();
         relleno.setStyle("-fx-background-color: linear-gradient(to right, #e10600, #ff2b2b); -fx-background-radius: 6;");
         relleno.setPrefHeight(14);
-        relleno.setPrefWidth(300 * (piloto.getHabilidad() / 100.0));
+        // Se enlaza al ancho REAL del fondo (no a un número fijo), porque el
+        // contenedor se estira a lo que mida el panel. Con un ancho fijo como
+        // referencia, el relleno solo llenaba esa porción fija del contenedor
+        // real (mucho más ancho), pareciendo siempre parcial aunque el valor fuera 100.
+        relleno.prefWidthProperty().bind(fondoBarra.widthProperty().multiply(valor / 100.0));
+        // Sin este límite, un Region sin maxWidth propio se estira al ancho completo
+        // del StackPane (igual que fondoBarra), y la barra roja siempre se ve al 100%.
+        relleno.setMaxWidth(Region.USE_PREF_SIZE);
         StackPane pilaBarra = new StackPane(fondoBarra, relleno);
         StackPane.setAlignment(relleno, Pos.CENTER_LEFT);
-        barraHabilidad.getChildren().addAll(etiquetaBarra, pilaBarra);
-
-        VBox contenido = new VBox(20, encabezado, datos, barraHabilidad);
-        panelDetalle.getChildren().setAll(contenido);
+        barra.getChildren().addAll(encabezadoBarra, pilaBarra);
+        return barra;
     }
 
     private void agregarDato(GridPane grid, int fila, String etiqueta, String valor) {

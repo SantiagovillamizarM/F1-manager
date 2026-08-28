@@ -150,12 +150,13 @@ public class ResultadosCarreraPane extends VBox {
             l.getStyleClass().add("texto-normal");
         }
 
-        Label tituloVueltas = new Label("Tiempos por vuelta");
+        Label tituloVueltas = new Label(r.isDnf() ? "Tiempos por vuelta (antes del choque)" : "Tiempos por vuelta");
         tituloVueltas.getStyleClass().add("etiqueta-campo");
 
         VBox listaVueltas = new VBox(4);
         List<Double> vueltas = r.getTiemposPorVuelta();
-        for (int i = 0; i < vueltas.size(); i++) {
+        int vueltasCompletadas = r.getVueltasCompletadas();
+        for (int i = 0; i < vueltasCompletadas; i++) {
             Label linea = new Label("Vuelta " + (i + 1) + ":  " + ResultadoCarrera.formatearTiempo(vueltas.get(i)));
             linea.getStyleClass().add("texto-secundario");
             listaVueltas.getChildren().add(linea);

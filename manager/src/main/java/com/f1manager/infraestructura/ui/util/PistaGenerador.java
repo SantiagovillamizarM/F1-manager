@@ -9,13 +9,19 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 public final class PistaGenerador {
 
+    /** Proporción del trazado considerada "curva" (el resto se considera "recta"). */
+    private static final double PROPORCION_CURVA = 0.35;
+
     private final List<Point2D> puntosNormalizados; // coordenadas en rango aproximado [-1, 1]
     private final double[] longitudAcumulada;        // longitud acumulada de la spline, para posicionar por fracción
     private final double longitudTotal;
+    private final double[] curvaturas;               // qué tan cerrado es el trazado en cada punto (mayor = más cerrado)
+    private final double umbralCurva;                // a partir de qué curvatura se considera "curva"
 
     private PistaGenerador(List<Point2D> puntosNormalizados) {
         this.puntosNormalizados = puntosNormalizados;
@@ -29,6 +35,50 @@ public final class PistaGenerador {
             anterior = actual;
         }
         this.longitudTotal = acumulado;
+        this.curvaturas = calcularCurvaturas(puntosNormalizados);
+        this.umbralCurva = calcularUmbralCurva(curvaturas);
+    }
+
+    /** Curvatura aproximada (en radianes) en cada punto: ángulo entre el tramo anterior y el siguiente. */
+    private static double[] calcularCurvaturas(List<Point2D> puntos) {
+        int n = puntos.size();
+        double[] resultado = new double[n];
+        for (int i = 0; i < n; i++) {
+            Point2D anterior = puntos.get((i - 2 + n) % n);
+            Point2D actual = puntos.get(i);
+            Point2D siguiente = puntos.get((i + 2) % n);
+            Point2D v1 = actual.subtract(anterior);
+            Point2D v2 = siguiente.subtract(actual);
+            resultado[i] = angulo(v1, v2);
+        }
+        return resultado;
+    }
+
+    private static double angulo(Point2D a, Point2D b) {
+        double magA = a.magnitude();
+        double magB = b.magnitude();
+        if (magA < 1e-9 || magB < 1e-9) {
+            return 0;
+        }
+        double coseno = Math.max(-1, Math.min(1, a.dotProduct(b) / (magA * magB)));
+        return Math.acos(coseno);
+    }
+
+    /** Umbral de curvatura tal que aproximadamente PROPORCION_CURVA de la pista quede clasificada como curva. */
+    private static double calcularUmbralCurva(double[] curvaturas) {
+        double[] ordenadas = curvaturas.clone();
+        Arrays.sort(ordenadas);
+        int indice = (int) Math.floor(ordenadas.length * (1 - PROPORCION_CURVA));
+        indice = Math.max(0, Math.min(ordenadas.length - 1, indice));
+        return ordenadas[indice];
+    }
+
+    /** Indica si la fracción de vuelta dada (0.0 a 1.0) cae en un tramo de curva del trazado real. */
+    public boolean esCurvaEnFraccion(double fraccion) {
+        double f = fraccion % 1.0;
+        if (f < 0) f += 1.0;
+        int indice = (int) Math.round(f * curvaturas.length) % curvaturas.length;
+        return curvaturas[indice] >= umbralCurva;
     }
 
     /** Genera (de forma determinista) la pista asociada a un circuito. */

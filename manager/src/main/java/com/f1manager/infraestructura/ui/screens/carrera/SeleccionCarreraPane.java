@@ -95,7 +95,14 @@ public class SeleccionCarreraPane extends BorderPane {
         panelCentro.getChildren().addAll(nombreCircuitoLabel, descripcionCircuitoLabel, contenedorLienzo,
                 tituloClima, filaClima, cajaBoton);
         panelCentro.setPadding(new Insets(0, 0, 0, 10));
-        setCenter(panelCentro);
+
+        // Si la ventana es pequeña y el contenido no cabe completo, se puede hacer
+        // scroll en vez de recortar el botón "EMPEZAR CARRERA" fuera de la vista.
+        ScrollPane scrollCentro = new ScrollPane(panelCentro);
+        scrollCentro.setFitToWidth(true);
+        scrollCentro.getStyleClass().add("scroll-oscuro");
+        scrollCentro.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        setCenter(scrollCentro);
     }
 
     private VBox construirFilaCircuito(Circuito circuito) {

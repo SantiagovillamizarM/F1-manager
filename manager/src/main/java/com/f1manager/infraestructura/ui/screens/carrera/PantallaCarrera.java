@@ -7,6 +7,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -27,8 +28,21 @@ public class PantallaCarrera extends BorderPane {
     public PantallaCarrera(GestorEscenas gestor) {
         getStyleClass().add("pantalla");
         setPrefSize(1366, 820);
+        // Deja aire arriba y abajo: sin este padding, la barra superior y el
+        // contenido de cada estado (selección/animación/resultados) quedan
+        // pegados directamente a los bordes de la ventana.
+        setPadding(new Insets(10, 0, 14, 0));
         setTop(construirBarraSuperior(gestor));
-        setCenter(areaCentral);
+
+        // Si el contenido de un estado (sobre todo la animación, con el
+        // circuito de tamaño fijo + el panel "EN VIVO" + la barra de
+        // velocidad) no cabe completo en la ventana, se puede hacer scroll
+        // en vez de que quede recortado arriba y abajo sin forma de verlo.
+        ScrollPane scrollCentral = new ScrollPane(areaCentral);
+        scrollCentral.setFitToWidth(true);
+        scrollCentral.getStyleClass().add("scroll-oscuro");
+        scrollCentral.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        setCenter(scrollCentral);
 
         mostrarSeleccion(gestor);
     }

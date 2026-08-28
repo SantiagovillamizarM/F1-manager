@@ -16,7 +16,12 @@ public class PilotosRegistrarPane extends VBox {
     private final ComboBox<String> comboEquipo = new ComboBox<>();
     private final ComboBox<RolPiloto> comboRol = new ComboBox<>();
     private final TextField campoExperiencia = new TextField();
-    private final TextField campoHabilidad = new TextField();
+    private final TextField campoSeco = new TextField();
+    private final TextField campoLluvia = new TextField();
+    private final TextField campoExtremo = new TextField();
+    private final TextField campoCurva = new TextField();
+    private final TextField campoAdelantamiento = new TextField();
+    private final TextField campoRecta = new TextField();
     private final Label mensaje = new Label();
 
     public PilotosRegistrarPane(Runnable alCancelar) {
@@ -46,8 +51,23 @@ public class PilotosRegistrarPane extends VBox {
         campoExperiencia.getStyleClass().add("campo-texto");
         campoExperiencia.setPromptText("Ej: 5");
 
-        campoHabilidad.getStyleClass().add("campo-texto");
-        campoHabilidad.setPromptText("Ej: 88 (1 a 100)");
+        campoSeco.getStyleClass().add("campo-texto");
+        campoSeco.setPromptText("Ej: 88 (1 a 100)");
+
+        campoLluvia.getStyleClass().add("campo-texto");
+        campoLluvia.setPromptText("Ej: 88 (1 a 100)");
+
+        campoExtremo.getStyleClass().add("campo-texto");
+        campoExtremo.setPromptText("Ej: 88 (1 a 100)");
+
+        campoCurva.getStyleClass().add("campo-texto");
+        campoCurva.setPromptText("Ej: 88 (1 a 100)");
+
+        campoAdelantamiento.getStyleClass().add("campo-texto");
+        campoAdelantamiento.setPromptText("Ej: 88 (1 a 100)");
+
+        campoRecta.getStyleClass().add("campo-texto");
+        campoRecta.setPromptText("Ej: 88 (1 a 100)");
 
         mensaje.setWrapText(true);
 
@@ -70,7 +90,12 @@ public class PilotosRegistrarPane extends VBox {
                 etiqueta("Equipo"), comboEquipo,
                 etiqueta("Rol"), comboRol,
                 etiqueta("Años de experiencia"), campoExperiencia,
-                etiqueta("Habilidad (1-100)"), campoHabilidad,
+                etiqueta("Habilidad en seco (1-100)"), campoSeco,
+                etiqueta("Habilidad en lluvia (1-100)"), campoLluvia,
+                etiqueta("Habilidad en clima extremo (1-100)"), campoExtremo,
+                etiqueta("Habilidad en curva (1-100)"), campoCurva,
+                etiqueta("Habilidad de adelantamiento (1-100)"), campoAdelantamiento,
+                etiqueta("Habilidad en recta (1-100)"), campoRecta,
                 mensaje, botones
         );
 
@@ -94,7 +119,9 @@ public class PilotosRegistrarPane extends VBox {
             actualizarEquipos();
             DataStore.getInstancia().registrarPiloto(
                     campoNombre.getText(), comboEquipo.getValue(), comboRol.getValue(),
-                    campoExperiencia.getText(), campoHabilidad.getText());
+                    campoExperiencia.getText(),
+                    campoCurva.getText(), campoAdelantamiento.getText(), campoRecta.getText(),
+                    campoLluvia.getText(), campoSeco.getText(), campoExtremo.getText());
             mensaje.getStyleClass().removeAll("error-label");
             mensaje.getStyleClass().add("texto-rojo");
             mensaje.setText("Piloto registrado correctamente.");
@@ -111,6 +138,11 @@ public class PilotosRegistrarPane extends VBox {
         comboEquipo.setValue(null);
         comboRol.setValue(null);
         campoExperiencia.clear();
-        campoHabilidad.clear();
+        campoSeco.clear();
+        campoLluvia.clear();
+        campoExtremo.clear();
+        campoCurva.clear();
+        campoAdelantamiento.clear();
+        campoRecta.clear();
     }
 }

@@ -12,6 +12,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.*;
 
@@ -65,8 +66,13 @@ public class MenuPrincipal extends BorderPane {
         HBox.setHgrow(columnaAdmin, Priority.NEVER);
         HBox.setHgrow(columnaCarrera, Priority.NEVER);
 
-        StackPane centro = new StackPane(cuerpo);
-        setCenter(centro);
+        // Si la ventana es pequeña y las tarjetas no caben completas, se puede
+        // hacer scroll en vez de recortar la tarjeta "CARRERA" fuera de la vista.
+        ScrollPane scrollCentro = new ScrollPane(cuerpo);
+        scrollCentro.setFitToWidth(true);
+        scrollCentro.getStyleClass().add("scroll-oscuro");
+        scrollCentro.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        setCenter(scrollCentro);
 
         // --- Pie: botón salir ---
         Button botonSalir = new Button("SALIR");
