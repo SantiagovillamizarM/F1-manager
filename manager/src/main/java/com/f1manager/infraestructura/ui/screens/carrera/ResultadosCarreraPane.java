@@ -16,6 +16,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ResultadosCarreraPane extends VBox {
 
@@ -146,7 +147,14 @@ public class ResultadosCarreraPane extends VBox {
         Label posicionFinal = new Label("Posición final: P" + r.getPosicion());
         Label tiempoTotal = new Label("Tiempo total: " + r.getDiferenciaFormateada(tiempoLider));
         Label promedio = new Label("Promedio por vuelta: " + ResultadoCarrera.formatearTiempo(r.getTiempoPromedioVuelta()));
-        for (Label l : List.of(vehiculo, velocidadMax, posicionFinal, tiempoTotal, promedio)) {
+        String neumatico = r.getMonoplaza() != null && r.getMonoplaza().getTipoNeumatico() != null
+                ? r.getMonoplaza().getTipoNeumatico().getEtiqueta() : "N/D";
+        Label desgaste = new Label(String.format("Neumático: %s  ·  Desgaste de las llantas: %.0f/100", neumatico, r.getDesgasteFinal()));
+        List<Integer> paradas = r.getParadasEnBoxes();
+        String textoParadas = paradas.isEmpty() ? "Sin paradas en boxes"
+                : "Paradas en boxes: vuelta " + paradas.stream().map(String::valueOf).collect(Collectors.joining(", vuelta "));
+        Label pits = new Label(textoParadas);
+        for (Label l : List.of(vehiculo, velocidadMax, posicionFinal, tiempoTotal, promedio, desgaste, pits)) {
             l.getStyleClass().add("texto-normal");
         }
 
@@ -168,7 +176,7 @@ public class ResultadosCarreraPane extends VBox {
         scrollVueltas.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
 
         VBox contenido = new VBox(12, encabezado, vehiculo, velocidadMax, posicionFinal, tiempoTotal, promedio,
-                tituloVueltas, scrollVueltas);
+                desgaste, pits, tituloVueltas, scrollVueltas);
         panelDetalle.getChildren().setAll(contenido);
     }
 }

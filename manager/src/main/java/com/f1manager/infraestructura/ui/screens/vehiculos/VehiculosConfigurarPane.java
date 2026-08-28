@@ -5,6 +5,7 @@ import com.f1manager.dominio.excepcion.ValidacionException;
 import com.f1manager.dominio.modelo.CargaAerodinamica;
 import com.f1manager.dominio.modelo.ModoConduccion;
 import com.f1manager.dominio.modelo.Monoplaza;
+import com.f1manager.dominio.modelo.TipoNeumatico;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -24,8 +25,10 @@ public class VehiculosConfigurarPane extends VBox {
     private final ComboBox<Monoplaza> comboVehiculo = new ComboBox<>();
     private CargaAerodinamica cargaSeleccionada;
     private ModoConduccion modoSeleccionado;
+    private TipoNeumatico neumaticoSeleccionado;
     private final HBox filaCargas = new HBox(14);
     private final HBox filaModos = new HBox(14);
+    private final HBox filaNeumaticos = new HBox(14);
     private final Label mensaje = new Label();
 
     public VehiculosConfigurarPane() {
@@ -62,6 +65,13 @@ public class VehiculosConfigurarPane extends VBox {
             actualizarSeleccionVisual(filaModos, o.toString());
         });
 
+        Label etiquetaNeumatico = new Label("Tipo de neumático");
+        etiquetaNeumatico.getStyleClass().add("etiqueta-campo");
+        construirOpciones(filaNeumaticos, TipoNeumatico.values(), o -> {
+            neumaticoSeleccionado = (TipoNeumatico) o;
+            actualizarSeleccionVisual(filaNeumaticos, o.toString());
+        });
+
         mensaje.setWrapText(true);
 
         Button guardar = new Button("GUARDAR");
@@ -74,8 +84,10 @@ public class VehiculosConfigurarPane extends VBox {
             comboVehiculo.setValue(null);
             cargaSeleccionada = null;
             modoSeleccionado = null;
+            neumaticoSeleccionado = null;
             filaCargas.getChildren().forEach(n -> n.getStyleClass().setAll("opcion-clima"));
             filaModos.getChildren().forEach(n -> n.getStyleClass().setAll("opcion-clima"));
+            filaNeumaticos.getChildren().forEach(n -> n.getStyleClass().setAll("opcion-clima"));
             mensaje.setText("");
         });
 
@@ -86,6 +98,7 @@ public class VehiculosConfigurarPane extends VBox {
                 etiquetaModelo, comboVehiculo,
                 etiquetaCarga, filaCargas,
                 etiquetaModo, filaModos,
+                etiquetaNeumatico, filaNeumaticos,
                 mensaje, botones
         );
 
@@ -117,8 +130,10 @@ public class VehiculosConfigurarPane extends VBox {
         if (m == null) return;
         cargaSeleccionada = m.getCargaAerodinamica();
         modoSeleccionado = m.getModoConduccion();
+        neumaticoSeleccionado = m.getTipoNeumatico();
         actualizarSeleccionVisual(filaCargas, cargaSeleccionada.toString());
         actualizarSeleccionVisual(filaModos, modoSeleccionado.toString());
+        actualizarSeleccionVisual(filaNeumaticos, neumaticoSeleccionado.toString());
     }
 
     private void guardar() {
@@ -126,7 +141,8 @@ public class VehiculosConfigurarPane extends VBox {
             if (comboVehiculo.getValue() == null) {
                 throw new ValidacionException("Debe seleccionar un modelo de vehículo.");
             }
-            DataStore.getInstancia().configurarVehiculo(comboVehiculo.getValue().getId(), cargaSeleccionada, modoSeleccionado);
+            DataStore.getInstancia().configurarVehiculo(comboVehiculo.getValue().getId(), cargaSeleccionada, modoSeleccionado,
+                    neumaticoSeleccionado);
             mensaje.getStyleClass().removeAll("error-label");
             mensaje.getStyleClass().add("texto-rojo");
             mensaje.setText("Configuración guardada correctamente para " + comboVehiculo.getValue().getModelo() + ".");

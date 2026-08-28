@@ -109,7 +109,8 @@ public class VehiculosListarPane extends HBox {
         Label aceleracion = new Label(String.format("Aceleración 0-100 km/h: %.1f s", m.getAceleracion0a100()));
         Label carga = new Label("Carga aerodinámica actual: " + m.getCargaAerodinamica().getEtiqueta());
         Label modo = new Label("Modo de conducción actual: " + m.getModoConduccion().getEtiqueta());
-        for (Label l : List.of(motor, velocidad, aceleracion, carga, modo)) {
+        Label neumatico = new Label("Neumático actual: " + m.getTipoNeumatico().getEtiqueta());
+        for (Label l : List.of(motor, velocidad, aceleracion, carga, modo, neumatico)) {
             l.getStyleClass().add("texto-normal");
         }
 
@@ -121,7 +122,7 @@ public class VehiculosListarPane extends HBox {
         pilotos.getStyleClass().add("texto-secundario");
         pilotos.setWrapText(true);
 
-        VBox contenido = new VBox(12, encabezado, motor, velocidad, aceleracion, carga, modo, pilotos);
+        VBox contenido = new VBox(12, encabezado, motor, velocidad, aceleracion, carga, modo, neumatico, pilotos);
         panelDetalle.getChildren().setAll(contenido);
     }
 }

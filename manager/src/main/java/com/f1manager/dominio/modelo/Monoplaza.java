@@ -13,6 +13,7 @@ public class Monoplaza {
     private double aceleracion0a100; // segundos, menor es mejor
     private CargaAerodinamica cargaAerodinamica;
     private ModoConduccion modoConduccion;
+    private TipoNeumatico tipoNeumatico;
 
     public Monoplaza(int id, String modelo, String equipo, String motor,
                       double velocidadMaxKmh, double aceleracion0a100) {
@@ -24,6 +25,7 @@ public class Monoplaza {
         this.aceleracion0a100 = aceleracion0a100;
         this.cargaAerodinamica = CargaAerodinamica.MEDIA;
         this.modoConduccion = ModoConduccion.NORMAL;
+        this.tipoNeumatico = TipoNeumatico.MEDIO;
     }
 
     public int getId() {
@@ -84,6 +86,14 @@ public class Monoplaza {
 
     public void setModoConduccion(ModoConduccion modoConduccion) {
         this.modoConduccion = modoConduccion;
+    }
+
+    public TipoNeumatico getTipoNeumatico() {
+        return tipoNeumatico;
+    }
+
+    public void setTipoNeumatico(TipoNeumatico tipoNeumatico) {
+        this.tipoNeumatico = tipoNeumatico;
     }
 
     @Override

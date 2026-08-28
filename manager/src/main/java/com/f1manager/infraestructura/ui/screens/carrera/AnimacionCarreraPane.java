@@ -29,6 +29,8 @@ import java.util.function.Consumer;
 public class AnimacionCarreraPane extends BorderPane {
 
     private static final long DURACION_ANIMACION_MS = 24000;
+    // Cuánto dura, en el tiempo simulado de la animación, la pausa visual de un piloto en boxes.
+    private static final double PAUSA_PIT_MS = 2200;
     private static final Color[] PALETA = {
             Color.web("#ff2b2b"), Color.web("#00d4ff"), Color.web("#ffd400"), Color.web("#39ff88"),
             Color.web("#ff8a00"), Color.web("#b388ff"), Color.web("#ff4fd8"), Color.web("#8bc34a"),
@@ -45,6 +47,11 @@ public class AnimacionCarreraPane extends BorderPane {
     private final Slider sliderVelocidadSimulacion = new Slider(0.25, 3.0, 0.5);
     private final Label etiquetaVelocidadSimulacion = new Label();
     private final Map<Piloto, ResultadoCarrera> resultadoPorPiloto = new LinkedHashMap<>();
+    // Estado de la pausa visual en boxes de cada piloto (parar unos segundos en la línea de salida).
+    private final Map<Piloto, Double> atrasoPitMs = new HashMap<>();
+    private final Map<Piloto, Boolean> pausaPitActiva = new HashMap<>();
+    private final Map<Piloto, Double> inicioPausaPitMs = new HashMap<>();
+    private final Map<Piloto, Integer> siguienteIndicePit = new HashMap<>();
     private AnimationTimer timer;
     private long ultimoFrameNs = -1;
     private double msSimuladosAcumulados = 0;
@@ -153,12 +160,14 @@ public class AnimacionCarreraPane extends BorderPane {
         pista.dibujar(gc, 0, 0, ancho, alto, true);
 
         // Calcular avance de cada piloto y ordenarlos para la clasificación en vivo.
-        // A un piloto que choca se le congela el avance en el punto exacto del choque.
+        // A un piloto que choca se le congela el avance en el punto exacto del choque, y a uno
+        // que entra a boxes se le detiene unos segundos en la línea de salida (ver calcularVueltasConPit).
         List<Piloto> ordenActual = new ArrayList<>(colores.keySet());
         Map<Piloto, Double> vueltasAvanzadas = new HashMap<>();
         Set<Piloto> chocados = new HashSet<>();
+        Set<Piloto> enBoxes = new HashSet<>();
         for (Piloto p : ordenActual) {
-            double vueltasNotables = fraccionTiempo * circuito.getVueltas() * factorVelocidad.get(p);
+            double vueltasNotables = calcularVueltasConPit(p, transcurridoMs, enBoxes);
             ResultadoCarrera resultado = resultadoPorPiloto.get(p);
             if (resultado.isDnf() && vueltasNotables >= resultado.getProgresoChoque()) {
                 vueltasAvanzadas.put(p, resultado.getProgresoChoque());
@@ -195,11 +204,51 @@ public class AnimacionCarreraPane extends BorderPane {
             }
         }
 
-        actualizarClasificacionEnVivo(ordenActual, vueltasAvanzadas, chocados, transcurridoMs);
+        actualizarClasificacionEnVivo(ordenActual, vueltasAvanzadas, chocados, enBoxes, transcurridoMs);
+    }
+
+    /**
+     * Progreso (en vueltas) de un piloto, incluyendo la parada visual en boxes: al llegar a la
+     * línea de salida de una vuelta en la que le tocaba parar, se congela ahí unos segundos
+     * (PAUSA_PIT_MS) antes de retomar el ritmo normal sin saltos hacia adelante.
+     */
+    private double calcularVueltasConPit(Piloto p, double msActual, Set<Piloto> enBoxes) {
+        List<Integer> paradas = resultadoPorPiloto.get(p).getParadasEnBoxes();
+        int indice = siguienteIndicePit.getOrDefault(p, 0);
+        boolean enPausa = pausaPitActiva.getOrDefault(p, false);
+
+        if (enPausa) {
+            double inicio = inicioPausaPitMs.get(p);
+            int vueltaPit = paradas.get(indice - 1);
+            if (msActual - inicio < PAUSA_PIT_MS) {
+                enBoxes.add(p);
+                return vueltaPit;
+            }
+            // Termina la pausa: se calcula el atraso justo para retomar desde este punto sin saltos.
+            double vueltasTotales = circuito.getVueltas();
+            double factor = factorVelocidad.get(p);
+            double msNecesarios = (vueltaPit / (vueltasTotales * factor)) * DURACION_ANIMACION_MS;
+            atrasoPitMs.put(p, msActual - msNecesarios);
+            pausaPitActiva.put(p, false);
+            enPausa = false;
+        }
+
+        double atraso = atrasoPitMs.getOrDefault(p, 0.0);
+        double vueltasCrudo = ((msActual - atraso) / DURACION_ANIMACION_MS) * circuito.getVueltas() * factorVelocidad.get(p);
+
+        if (!enPausa && indice < paradas.size() && vueltasCrudo >= paradas.get(indice)) {
+            pausaPitActiva.put(p, true);
+            inicioPausaPitMs.put(p, msActual);
+            siguienteIndicePit.put(p, indice + 1);
+            enBoxes.add(p);
+            return paradas.get(indice);
+        }
+
+        return vueltasCrudo;
     }
 
     private void actualizarClasificacionEnVivo(List<Piloto> orden, Map<Piloto, Double> vueltasAvanzadas,
-                                                Set<Piloto> chocados, long transcurridoMs) {
+                                                Set<Piloto> chocados, Set<Piloto> enBoxes, long transcurridoMs) {
         columnaClasificacionEnVivo.getChildren().clear();
         double segundosTranscurridos = transcurridoMs / 1000.0;
         String tiempo = ResultadoCarrera.formatearTiempo(segundosTranscurridos);
@@ -207,12 +256,21 @@ public class AnimacionCarreraPane extends BorderPane {
         int posicion = 1;
         for (Piloto p : orden) {
             boolean choco = chocados.contains(p);
-            String estado = choco
-                    ? "DNF (choque)"
-                    : "Vuelta " + Math.min(circuito.getVueltas(), (int) Math.floor(vueltasAvanzadas.get(p)) + 1)
-                            + "/" + circuito.getVueltas() + "   ·   " + tiempo;
+            boolean enBox = enBoxes.contains(p);
+            String estado;
+            String colorTexto;
+            if (choco) {
+                estado = "DNF (choque)";
+                colorTexto = "#6b7280";
+            } else if (enBox) {
+                estado = "EN BOX";
+                colorTexto = "#ffd400";
+            } else {
+                estado = "Vuelta " + Math.min(circuito.getVueltas(), (int) Math.floor(vueltasAvanzadas.get(p)) + 1)
+                        + "/" + circuito.getVueltas() + "   ·   " + tiempo;
+                colorTexto = toHex(colores.get(p));
+            }
             Label linea = new Label(posicion + "  " + p.getNombre() + "   ·   " + p.getEquipo() + "   ·   " + estado);
-            String colorTexto = choco ? "#6b7280" : toHex(colores.get(p));
             linea.setStyle("-fx-text-fill: " + colorTexto + "; -fx-font-size: 11px; -fx-font-weight: bold;");
             linea.setWrapText(true);
             columnaClasificacionEnVivo.getChildren().add(linea);

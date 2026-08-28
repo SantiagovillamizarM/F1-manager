@@ -230,14 +230,16 @@ public final class DataStore {
         return vehiculos;
     }
 
-    public void configurarVehiculo(int idVehiculo, CargaAerodinamica carga, ModoConduccion modo) throws ValidacionException {
+    public void configurarVehiculo(int idVehiculo, CargaAerodinamica carga, ModoConduccion modo,
+                                    TipoNeumatico neumatico) throws ValidacionException {
         Monoplaza vehiculo = vehiculos.stream().filter(v -> v.getId() == idVehiculo).findFirst()
                 .orElseThrow(() -> new ValidacionException("El vehículo seleccionado no existe."));
-        if (carga == null || modo == null) {
-            throw new ValidacionException("Debe seleccionar carga aerodinámica y modo de conducción.");
+        if (carga == null || modo == null || neumatico == null) {
+            throw new ValidacionException("Debe seleccionar carga aerodinámica, modo de conducción y tipo de neumático.");
         }
         vehiculo.setCargaAerodinamica(carga);
         vehiculo.setModoConduccion(modo);
+        vehiculo.setTipoNeumatico(neumatico);
     }
 
     public Monoplaza getVehiculoPorEquipo(String equipo) {

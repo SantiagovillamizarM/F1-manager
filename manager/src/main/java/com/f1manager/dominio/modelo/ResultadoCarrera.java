@@ -40,6 +40,8 @@ public class ResultadoCarrera {
 
 
         private List<Double> tiemposPorVuelta = new ArrayList<>();
+    private List<Double> desgastePorVuelta = new ArrayList<>(); // desgaste de neumáticos (0-100) al final de cada vuelta
+    private List<Integer> vueltasDePit = new ArrayList<>(); // en qué vueltas entró a boxes a cambiar neumáticos
     private double velocidadMaximaAlcanzada;
     private boolean dnf;
     private double progresoChoque; // vueltas completadas al momento del choque (ej. 5.375), solo válido si dnf
@@ -77,6 +79,36 @@ public class ResultadoCarrera {
     /** Cuántas vueltas completó realmente: todas si terminó, o las previas al choque si no. */
     public int getVueltasCompletadas() {
         return dnf ? (int) Math.floor(progresoChoque) : tiemposPorVuelta.size();
+    }
+
+    public List<Double> getDesgastePorVuelta() {
+        return desgastePorVuelta;
+    }
+
+    public void setDesgastePorVuelta(List<Double> desgastePorVuelta) {
+        this.desgastePorVuelta = desgastePorVuelta;
+    }
+
+    /** Desgaste de neumáticos (0-100) en el momento en que terminó de correr (llegó a meta o chocó). */
+    public double getDesgasteFinal() {
+        int ultimaVueltaValida = Math.min(getVueltasCompletadas(), desgastePorVuelta.size());
+        return ultimaVueltaValida <= 0 ? 0 : desgastePorVuelta.get(ultimaVueltaValida - 1);
+    }
+
+    public void setVueltasDePit(List<Integer> vueltasDePit) {
+        this.vueltasDePit = vueltasDePit;
+    }
+
+    /** En qué vueltas entró a boxes, solo contando las que ocurrieron antes de terminar de correr. */
+    public List<Integer> getParadasEnBoxes() {
+        int completadas = getVueltasCompletadas();
+        List<Integer> validas = new ArrayList<>();
+        for (Integer vuelta : vueltasDePit) {
+            if (vuelta <= completadas) {
+                validas.add(vuelta);
+            }
+        }
+        return validas;
     }
 
     public double getTiempoPromedioVuelta() {

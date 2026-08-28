@@ -29,6 +29,13 @@ import java.util.function.Function;
 public class SimuladorCarrera {
 
     private static final double SEGUNDOS_POR_KM_BASE = 24.0;
+    // Neumático adecuado para el clima real (ayuda) vs. inadecuado (se resiente / "se desgasta más rápido").
+    private static final double FACTOR_NEUMATICO_ACERTADO = 0.97;
+    private static final double FACTOR_NEUMATICO_INADECUADO = 1.08;
+    // Cuánto más rápido se desgasta el neumático cuando el compuesto no corresponde al clima real.
+    private static final double MULTIPLICADOR_DESGASTE_INADECUADO = 1.8;
+    // Cuánto puede llegar a ralentizar un neumático 100% desgastado, comparado con uno nuevo.
+    private static final double PENALIZACION_MAX_POR_DESGASTE = 0.15;
 
     private final Random random = new Random();
 
@@ -51,8 +58,14 @@ public class SimuladorCarrera {
 
             Monoplaza monoplaza = monoplazaDe.apply(piloto);
             double tiempo = calcularTiempoPiloto(tiempoBase, piloto, monoplaza, climaReal);
-            ResultadoCarrera resultado = new ResultadoCarrera(piloto, monoplaza, tiempo);
-            resultado.setTiemposPorVuelta(generarTiemposPorVuelta(tiempo, circuito.getVueltas()));
+            double tiempoPromedioPorVuelta = tiempo / circuito.getVueltas();
+            VueltasSimuladas vueltas = simularVueltas(monoplaza, climaReal, circuito.getVueltas(), tiempoPromedioPorVuelta);
+            double tiempoFinal = vueltas.tiempos().stream().mapToDouble(Double::doubleValue).sum();
+
+            ResultadoCarrera resultado = new ResultadoCarrera(piloto, monoplaza, tiempoFinal);
+            resultado.setTiemposPorVuelta(vueltas.tiempos());
+            resultado.setDesgastePorVuelta(vueltas.desgaste());
+            resultado.setVueltasDePit(vueltas.vueltasDePit());
             resultado.setVelocidadMaximaAlcanzada(generarVelocidadMaxima(monoplaza));
             resultados.add(resultado);
         }
@@ -104,7 +117,9 @@ public class SimuladorCarrera {
                     if (resultado.isDnf()) {
                         continue;
                     }
-                    double probabilidad = probabilidadChoque(resultado.getPiloto(), curva);
+                    boolean desgasteAlMaximo = vuelta - 1 < resultado.getDesgastePorVuelta().size()
+                            && resultado.getDesgastePorVuelta().get(vuelta - 1) >= UMBRAL_DESGASTE_RIESGOSO;
+                    double probabilidad = probabilidadChoque(resultado.getPiloto(), curva, desgasteAlMaximo);
                     if (random.nextDouble() >= probabilidad) {
                         continue;
                     }
@@ -123,12 +138,19 @@ public class SimuladorCarrera {
         }
     }
 
-    /** Probabilidad de choque en un chequeo: más baja cuanto mejor sea la habilidad relevante, nunca 0. */
-    private double probabilidadChoque(Piloto piloto, boolean curva) {
+    /**
+     * Probabilidad de choque en un chequeo: más baja cuanto mejor sea la habilidad relevante,
+     * nunca 0, y un poco más alta si en ese momento el neumático está al límite de desgaste.
+     */
+    private double probabilidadChoque(Piloto piloto, boolean curva, boolean desgasteAlMaximo) {
         int habilidadTramo = curva ? piloto.getHabilidadCurva() : piloto.getHabilidadRecta();
         double habilidadPromedioRelevante = (habilidadTramo + piloto.getHabilidadAdelantamiento()) / 2.0;
         double factorRiesgo = Math.max(0.15, (100 - habilidadPromedioRelevante) / 100.0);
-        return PROB_BASE_CHOQUE * factorRiesgo;
+        double probabilidad = PROB_BASE_CHOQUE * factorRiesgo;
+        if (desgasteAlMaximo) {
+            probabilidad *= MULTIPLICADOR_RIESGO_DESGASTE;
+        }
+        return probabilidad;
     }
 
     /** Entre los pilotos que siguen en carrera, el que tenga el tiempo acumulado más parecido (pelea rueda a rueda). */
@@ -197,6 +219,16 @@ public class SimuladorCarrera {
 
             ModoConduccion modo = monoplaza.getModoConduccion();
             tiempo *= modo.getFactorRitmo();
+
+            // --- Neumáticos: ritmo propio del compuesto, y acierto o error según el clima ---
+            TipoNeumatico neumatico = monoplaza.getTipoNeumatico();
+            if (neumatico != null) {
+                tiempo *= neumatico.getFactorRitmo();
+                boolean climaMojado = climaReal == Clima.LLUVIOSO || climaReal == Clima.EXTREMO;
+                tiempo *= (neumatico.isParaLluvia() == climaMojado)
+                        ? FACTOR_NEUMATICO_ACERTADO
+                        : FACTOR_NEUMATICO_INADECUADO;
+            }
         }
 
         // --- Clima ---
@@ -215,21 +247,80 @@ public class SimuladorCarrera {
 
         return Math.max(tiempo, tiempoBase * 0.5); // seguridad ante configuraciones extremas
     }
-        private List<Double> generarTiemposPorVuelta(double tiempoTotal, int vueltas) {
+    // A partir de qué nivel de desgaste (cercano al máximo de 100) el piloto entra a boxes a cambiar neumáticos.
+    private static final double UMBRAL_DESGASTE_PIT = 95.0;
+    // Tiempo perdido por una parada en boxes (calle de pits + cambio de neumáticos), en segundos.
+    private static final double TIEMPO_PERDIDO_EN_PIT = 22.0;
+    // Desgaste a partir del cual, mientras recorre ese tramo, el riesgo de choque es un poco mayor.
+    private static final double UMBRAL_DESGASTE_RIESGOSO = 95.0;
+    private static final double MULTIPLICADOR_RIESGO_DESGASTE = 1.6;
+
+    /** Resultado de simular vuelta por vuelta a un piloto: tiempos, desgaste y en qué vueltas paró en boxes. */
+    private record VueltasSimuladas(List<Double> tiempos, List<Double> desgaste, List<Integer> vueltasDePit) {
+    }
+
+    /**
+     * Simula la carrera de un piloto vuelta por vuelta: el ritmo base varía un poco entre
+     * vueltas, y el desgaste de neumáticos (que se acelera si el compuesto no corresponde al
+     * clima real) penaliza progresivamente el tiempo. Al alcanzar un desgaste alto, el piloto
+     * entra a boxes: pierde tiempo en la parada, cambia de neumáticos (a uno adecuado para el
+     * clima si el actual no lo era) y el desgaste vuelve a 0.
+     */
+    private VueltasSimuladas simularVueltas(Monoplaza monoplaza, Clima climaReal, int vueltas, double tiempoPromedioPorVuelta) {
         List<Double> tiempos = new ArrayList<>();
-        double promedio = tiempoTotal / vueltas;
-        double sumaGenerada = 0;
-        for (int i = 0; i < vueltas; i++) {
-            double variacion = 1 + (random.nextGaussian() * 0.02); // ±2% entre vueltas
-            double vuelta = promedio * variacion;
-            tiempos.add(vuelta);
-            sumaGenerada += vuelta;
+        List<Double> desgaste = new ArrayList<>();
+        List<Integer> vueltasDePit = new ArrayList<>();
+
+        TipoNeumatico neumaticoActual = monoplaza != null ? monoplaza.getTipoNeumatico() : null;
+        boolean climaMojado = climaReal == Clima.LLUVIOSO || climaReal == Clima.EXTREMO;
+        double acumuladoDesgaste = 0;
+
+        // Cada piloto/auto tiene su propio ritmo de desgaste (no todos son iguales): depende del
+        // modo de conducción configurado (agresivo desgasta más rápido, ahorro más lento) y de
+        // una variación propia del auto/piloto, fija para toda la carrera (no cambia vuelta a vuelta).
+        double factorModo = monoplaza != null ? monoplaza.getModoConduccion().getFactorDesgasteNeumatico() : 1.0;
+        double factorIndividual = 0.85 + random.nextDouble() * 0.3; // entre 0.85 y 1.15, distinto por piloto
+
+        for (int vuelta = 1; vuelta <= vueltas; vuelta++) {
+            double variacionRitmo = 1 + random.nextGaussian() * 0.02; // ±2% entre vueltas
+            double tiempoVuelta = tiempoPromedioPorVuelta * variacionRitmo;
+
+            if (neumaticoActual != null) {
+                double factorDesgaste = 1.0 + (acumuladoDesgaste / 100.0) * PENALIZACION_MAX_POR_DESGASTE;
+                tiempoVuelta *= factorDesgaste;
+
+                double ritmoDesgaste = neumaticoActual.getDesgastePorVuelta() * factorModo * factorIndividual;
+                if (neumaticoActual.isParaLluvia() != climaMojado) {
+                    ritmoDesgaste *= MULTIPLICADOR_DESGASTE_INADECUADO;
+                }
+                // Incremento parejo dentro de la propia carrera de este piloto (sin ruido vuelta a
+                // vuelta): empieza en 0 y sube de forma predecible, a SU ritmo particular.
+                acumuladoDesgaste = Math.min(100, acumuladoDesgaste + ritmoDesgaste);
+            }
+
+            // Se guarda el desgaste alcanzado AL RECORRER esta vuelta (antes de resetear por el
+            // pit, si corresponde), para que quede registrado que se condujo con el neumático al
+            // límite justo en esta vuelta.
+            tiempos.add(tiempoVuelta);
+            desgaste.add(acumuladoDesgaste);
+
+            if (neumaticoActual != null && acumuladoDesgaste >= UMBRAL_DESGASTE_PIT && vuelta < vueltas) {
+                tiempos.set(tiempos.size() - 1, tiempos.get(tiempos.size() - 1) + TIEMPO_PERDIDO_EN_PIT);
+                vueltasDePit.add(vuelta);
+                neumaticoActual = elegirNeumaticoParaPit(neumaticoActual, climaMojado);
+                acumuladoDesgaste = 0;
+            }
         }
-        double factorAjuste = tiempoTotal / sumaGenerada; // para que la suma coincida con el tiempo total
-        for (int i = 0; i < tiempos.size(); i++) {
-            tiempos.set(i, tiempos.get(i) * factorAjuste);
+
+        return new VueltasSimuladas(tiempos, desgaste, vueltasDePit);
+    }
+
+    /** Al entrar a boxes: si el compuesto actual ya era el correcto para el clima, se pone un juego nuevo del mismo; si no, se cambia a uno adecuado. */
+    private TipoNeumatico elegirNeumaticoParaPit(TipoNeumatico actual, boolean climaMojado) {
+        if (actual.isParaLluvia() == climaMojado) {
+            return actual;
         }
-        return tiempos;
+        return climaMojado ? TipoNeumatico.LLUVIA : TipoNeumatico.MEDIO;
     }
 
     private double generarVelocidadMaxima(Monoplaza monoplaza) {
