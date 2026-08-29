@@ -28,7 +28,7 @@ public class ModuloVehiculos extends ModuloGestionBase {
                 IconFactory.contenedor(IconFactory.monoplaza(IconFactory.BLANCO), 60),
                 "LISTAR\nMONOPLAZAS", () -> irA(0), false);
         TarjetaOpcion configurar = new TarjetaOpcion(
-                IconFactory.contenedor(IconFactory.engranaje(IconFactory.BLANCO), 60),
+                IconFactory.contenedor(IconFactory.logoConfigurarVehiculo(), 60),
                 "CONFIGURAR\nVEHÍCULO", () -> irA(1), false);
 
         HBox fila = new HBox(24, listar, configurar);

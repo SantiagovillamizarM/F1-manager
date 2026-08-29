@@ -138,7 +138,7 @@ public class ResultadosCarreraPane extends VBox {
     }
 
     private void mostrarDetalle(ResultadoCarrera r, double tiempoLider) {
-        StackPane casco = IconFactory.contenedor(IconFactory.casco(IconFactory.BLANCO), 70);
+        StackPane avatar = IconFactory.avatarPiloto(r.getPiloto(), 70);
 
         Label nombre = new Label(r.getPiloto().getNombre());
         nombre.getStyleClass().add("titulo-seccion");
@@ -146,7 +146,7 @@ public class ResultadosCarreraPane extends VBox {
         Label equipoRol = new Label(r.getPiloto().getEquipo() + "  ·  " + r.getPiloto().getRol().getEtiqueta());
         equipoRol.getStyleClass().add("texto-rojo");
 
-        HBox encabezado = new HBox(18, casco, new VBox(6, nombre, equipoRol));
+        HBox encabezado = new HBox(18, avatar, new VBox(6, nombre, equipoRol));
         encabezado.setAlignment(Pos.CENTER_LEFT);
 
         Label vehiculo = new Label("Vehículo: " + (r.getMonoplaza() != null ? r.getMonoplaza().getModelo() : "N/D"));

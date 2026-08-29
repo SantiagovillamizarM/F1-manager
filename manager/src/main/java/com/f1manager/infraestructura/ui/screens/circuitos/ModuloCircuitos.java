@@ -31,7 +31,7 @@ public class ModuloCircuitos extends ModuloGestionBase {
         quitarBarraLateral();
 
         TarjetaOpcion listar = new TarjetaOpcion(
-                IconFactory.contenedor(IconFactory.pistaSilueta(IconFactory.BLANCO), 60),
+                IconFactory.contenedor(IconFactory.logoGestionCircuitos(), 60),
                 "LISTAR\nCIRCUITOS", () -> irA(0), false);
         TarjetaOpcion registrar = new TarjetaOpcion(
                 IconFactory.contenedor(IconFactory.documento(IconFactory.BLANCO), 60),
@@ -52,7 +52,7 @@ public class ModuloCircuitos extends ModuloGestionBase {
 
     private List<BarraMiniIconos.Item> construirItemsBarra() {
         return List.of(
-                new BarraMiniIconos.Item(IconFactory.pistaSilueta(IconFactory.BLANCO), "Listar circuitos", () -> irA(0)),
+                new BarraMiniIconos.Item(IconFactory.logoGestionCircuitos(), "Listar circuitos", () -> irA(0)),
                 new BarraMiniIconos.Item(IconFactory.documento(IconFactory.BLANCO), "Registrar circuito", () -> irA(1)),
                 new BarraMiniIconos.Item(IconFactory.lupa(IconFactory.BLANCO), "Buscar circuito", () -> irA(2)),
                 new BarraMiniIconos.Item(IconFactory.equis(IconFactory.BLANCO), "Eliminar circuito", () -> irA(3))

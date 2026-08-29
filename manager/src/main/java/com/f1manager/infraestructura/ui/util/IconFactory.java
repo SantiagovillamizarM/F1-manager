@@ -8,6 +8,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import com.f1manager.dominio.modelo.Piloto;
 import javafx.scene.shape.*;
 import javafx.scene.image.ImageView;
 import java.util.Map;
@@ -83,7 +84,7 @@ public final class IconFactory {
     }
 
     public static Group logo(double escala) {
-        Image imagen = new Image("https://logodownload.org/wp-content/uploads/2016/11/formula-1-logo-5-3.png", true);
+        Image imagen = GestorImagenes.cargar("logo principal (f1).png");
         ImageView vista = new ImageView(imagen);
         vista.setPreserveRatio(true);
         vista.setFitHeight(40);
@@ -171,9 +172,9 @@ public final class IconFactory {
         return new Group(vista);
     }
 
-    /** Logo del botón "Gestión de equipos" del menú principal, cargado desde /imagenes. */
-    public static Group logoGestionEquipos() {
-        Image imagen = GestorImagenes.cargar("logo gestion de equipo.png");
+    /** Carga un logo local desde /imagenes; si el archivo no existe, usa el escudo genérico como respaldo. */
+    private static Group logoLocal(String nombreArchivo) {
+        Image imagen = GestorImagenes.cargar(nombreArchivo);
         if (imagen != null) {
             ImageView vista = new ImageView(imagen);
             vista.setPreserveRatio(true);
@@ -183,16 +184,84 @@ public final class IconFactory {
         return escudoEquipo(BLANCO);
     }
 
+    /** Logo del botón "Carrera" del menú principal, cargado desde /imagenes. */
+    public static Group logoCarrera() {
+        return logoLocal("bandera a cuadros.png");
+    }
+
+    /** Logo del botón "Gestión de equipos" del menú principal, cargado desde /imagenes. */
+    public static Group logoGestionEquipos() {
+        return logoLocal("logo gestion de equipo.png");
+    }
+
     /** Logo del botón "Modo campeonato" del menú principal, cargado desde /imagenes. */
     public static Group logoCampeonato() {
-        Image imagen = GestorImagenes.cargar("logo campeonato.png");
-        if (imagen != null) {
-            ImageView vista = new ImageView(imagen);
-            vista.setPreserveRatio(true);
-            vista.setFitWidth(50);
-            return new Group(vista);
+        return logoLocal("logo campeonato.png");
+    }
+
+    /** Logo del botón "Gestión de pilotos" del menú principal, cargado desde /imagenes. */
+    public static Group logoGestionPilotos() {
+        return logoLocal("avatars predeterminados/avatar 1.png");
+    }
+
+    /** Logo del botón "Gestión de vehículos" del menú principal, cargado desde /imagenes. */
+    public static Group logoGestionVehiculos() {
+        return logoLocal("monoplaza.png");
+    }
+
+    /** Logo del botón "Gestión de circuitos" del menú principal, cargado desde /imagenes. */
+    public static Group logoGestionCircuitos() {
+        return logoLocal("Pista logo principal.png");
+    }
+
+    /** Logo de la tarjeta "Configurar vehículo" dentro de Gestión de vehículos, cargado desde /imagenes. */
+    public static Group logoConfigurarVehiculo() {
+        return logoLocal("Imagen configuracion autos.png");
+    }
+
+    /**
+     * Foto del piloto (subida por el usuario o avatar predeterminado elegido al registrarlo),
+     * recortada en un cuadrado. Si el piloto no tiene foto asignada, o la URL guardada ya no
+     * carga, se usa el casco genérico como respaldo.
+     */
+    public static StackPane avatarPiloto(Piloto piloto, double tamano) {
+        Image imagen = cargarImagenPiloto(piloto);
+        if (imagen == null) {
+            return contenedor(casco(BLANCO), tamano);
         }
-        return escudoEquipo(BLANCO);
+        // "Cover": se escala manteniendo proporción hasta cubrir el cuadrado completo y
+        // se recorta el sobrante centrado, en vez de estirar la foto a la fuerza (lo cual
+        // la distorsionaba y se veía de baja calidad).
+        double escala = Math.max(tamano / imagen.getWidth(), tamano / imagen.getHeight());
+        double anchoEscalado = imagen.getWidth() * escala;
+        double altoEscalado = imagen.getHeight() * escala;
+
+        ImageView vista = new ImageView(imagen);
+        vista.setPreserveRatio(true);
+        vista.setFitWidth(anchoEscalado);
+        vista.setFitHeight(altoEscalado);
+        vista.setTranslateX(-(anchoEscalado - tamano) / 2.0);
+        vista.setTranslateY(-(altoEscalado - tamano) / 2.0);
+
+        Group recortado = new Group(vista);
+        Rectangle recorte = new Rectangle(tamano, tamano);
+        recorte.setArcWidth(12);
+        recorte.setArcHeight(12);
+        recortado.setClip(recorte);
+        return contenedor(recortado, tamano);
+    }
+
+    private static Image cargarImagenPiloto(Piloto piloto) {
+        String url = piloto.getImagenUrl();
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        try {
+            Image imagen = new Image(url);
+            return imagen.isError() ? null : imagen;
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     /** Ícono de equipo: escudo con franja diagonal. */

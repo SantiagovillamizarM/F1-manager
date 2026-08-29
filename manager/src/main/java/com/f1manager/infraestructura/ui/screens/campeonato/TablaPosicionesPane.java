@@ -2,6 +2,7 @@ package com.f1manager.infraestructura.ui.screens.campeonato;
 
 import com.f1manager.dominio.modelo.Campeonato;
 import com.f1manager.dominio.modelo.Piloto;
+import com.f1manager.infraestructura.ui.util.IconFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -10,6 +11,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.util.Map;
@@ -34,7 +36,8 @@ public class TablaPosicionesPane extends VBox {
         int posicion = 1;
         for (Map.Entry<Piloto, Integer> entrada : campeonato.getClasificacionPilotos()) {
             columnaPilotos.getChildren().add(construirFila(posicion,
-                    entrada.getKey().getNombre() + "  ·  " + entrada.getKey().getEquipo(), entrada.getValue()));
+                    entrada.getKey().getNombre() + "  ·  " + entrada.getKey().getEquipo(), entrada.getValue(),
+                    IconFactory.avatarPiloto(entrada.getKey(), 30)));
             posicion++;
         }
 
@@ -73,6 +76,10 @@ public class TablaPosicionesPane extends VBox {
     }
 
     private HBox construirFila(int posicion, String nombre, int puntos) {
+        return construirFila(posicion, nombre, puntos, null);
+    }
+
+    private HBox construirFila(int posicion, String nombre, int puntos, StackPane avatar) {
         boolean lider = posicion == 1;
 
         Label posicionLabel = new Label("P" + posicion);
@@ -97,7 +104,9 @@ public class TablaPosicionesPane extends VBox {
         puntosLabel.getStyleClass().add(lider ? "texto-rojo" : "texto-secundario");
         puntosLabel.setStyle(puntosLabel.getStyle() + "-fx-font-weight: bold;");
 
-        HBox fila = new HBox(10, posicionLabel, nombreLabel, espaciador, puntosLabel);
+        HBox fila = avatar != null
+                ? new HBox(10, posicionLabel, avatar, nombreLabel, espaciador, puntosLabel)
+                : new HBox(10, posicionLabel, nombreLabel, espaciador, puntosLabel);
         fila.setAlignment(Pos.CENTER_LEFT);
         fila.setPadding(new Insets(8, 10, 8, 10));
         return fila;

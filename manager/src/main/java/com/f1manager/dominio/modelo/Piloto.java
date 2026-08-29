@@ -17,6 +17,7 @@ public class Piloto {
     private int habilidadLluvia; // 1 a 100
     private int habilidadSeco; // 1 a 100
     private int habilidadExtremo; // 1 a 100
+    private String imagenUrl; // URL lista para cargar en un Image (foto subida o avatar predeterminado); null = sin foto
 
     public Piloto(int id, String nombre, String equipo, RolPiloto rol, int experienciaAnios,
                   int habilidadCurva, int habilidadAdelantamiento, int habilidadRecta,
@@ -116,6 +117,14 @@ public class Piloto {
 
     public void setHabilidadExtremo(int habilidadExtremo) {
         this.habilidadExtremo = habilidadExtremo;
+    }
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
     }
 
     /** Promedio de las 6 habilidades específicas, usado como resumen general (no se almacena). */

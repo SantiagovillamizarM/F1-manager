@@ -302,6 +302,18 @@
     -fx-font-weight: bold;
 }
 
+.barra-habilidad .track {
+    -fx-background-color: #232a3d;
+    -fx-background-radius: 6;
+    -fx-border-width: 0;
+}
+
+.barra-habilidad .bar {
+    -fx-background-color: linear-gradient(to right, #e10600, #ff2b2b);
+    -fx-background-radius: 6;
+    -fx-padding: 7px;
+}
+
 .error-label {
     -fx-text-fill: -color-red-bright;
     -fx-font-size: 12px;

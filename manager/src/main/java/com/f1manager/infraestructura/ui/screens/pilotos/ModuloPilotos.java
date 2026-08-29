@@ -27,7 +27,7 @@ public class ModuloPilotos extends ModuloGestionBase {
         quitarBarraLateral();
 
         TarjetaOpcion listar = new TarjetaOpcion(
-                IconFactory.contenedor(IconFactory.casco(IconFactory.BLANCO), 60),
+                IconFactory.contenedor(IconFactory.logoGestionPilotos(), 60),
                 "LISTAR\nPILOTOS", () -> irA(0), false);
         TarjetaOpcion registrar = new TarjetaOpcion(
                 IconFactory.contenedor(IconFactory.documento(IconFactory.BLANCO), 60),
@@ -44,7 +44,7 @@ public class ModuloPilotos extends ModuloGestionBase {
 
     private List<BarraMiniIconos.Item> construirItemsBarra() {
         return List.of(
-                new BarraMiniIconos.Item(IconFactory.casco(IconFactory.BLANCO), "Listar pilotos", () -> irA(0)),
+                new BarraMiniIconos.Item(IconFactory.logoGestionPilotos(), "Listar pilotos", () -> irA(0)),
                 new BarraMiniIconos.Item(IconFactory.documento(IconFactory.BLANCO), "Registrar piloto", () -> irA(1)),
                 new BarraMiniIconos.Item(IconFactory.equis(IconFactory.BLANCO), "Eliminar piloto", () -> irA(2))
         );

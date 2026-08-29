@@ -20,6 +20,12 @@ public final class GestorImagenes {
         return CACHE.computeIfAbsent(nombreArchivo, GestorImagenes::cargarDesdeRecurso);
     }
 
+    /** URL lista para usar en un Image (ej. para guardarla como foto de un piloto), o null si el archivo no existe. */
+    public static String urlDe(String nombreArchivo) {
+        URL recurso = GestorImagenes.class.getResource("/imagenes/" + nombreArchivo);
+        return recurso != null ? recurso.toExternalForm() : null;
+    }
+
     private static Image cargarDesdeRecurso(String nombreArchivo) {
         URL recurso = GestorImagenes.class.getResource("/imagenes/" + nombreArchivo);
         return recurso != null ? new Image(recurso.toExternalForm()) : null;

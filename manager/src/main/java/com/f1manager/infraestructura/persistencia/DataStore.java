@@ -37,6 +37,15 @@ public final class DataStore {
     // DATOS INICIALES
     // =====================================================================
 
+    /** Agrega un piloto sembrado con su foto real predeterminada (por nombre de archivo, ej. "max.jpg"). */
+    private void agregarPiloto(Piloto piloto, String archivoFoto) {
+        var recurso = DataStore.class.getResource("/imagenes/corredores predeterminados/" + archivoFoto);
+        if (recurso != null) {
+            piloto.setImagenUrl(recurso.toExternalForm());
+        }
+        pilotos.add(piloto);
+    }
+
     private void cargarDatosIniciales() {
         // ---- Equipos ----
         equipos.add(new Equipo("Mercedes-AMG Petronas", "Alemania", "Mercedes"));
@@ -48,18 +57,18 @@ public final class DataStore {
 
         // ---- Pilotos ----
         // Orden de habilidades: curva, adelantamiento, recta, lluvia, seco, extremo
-        pilotos.add(new Piloto(sigId(idPilotos), "Lewis Hamilton", "Mercedes-AMG Petronas", RolPiloto.LIDER, 18, 95, 94, 90, 97, 96, 95));
-        pilotos.add(new Piloto(sigId(idPilotos), "George Russell", "Mercedes-AMG Petronas", RolPiloto.ESCUDERO, 5, 87, 85, 88, 82, 88, 80));
-        pilotos.add(new Piloto(sigId(idPilotos), "Charles Leclerc", "Scuderia Ferrari", RolPiloto.LIDER, 7, 96, 88, 90, 85, 93, 84));
-        pilotos.add(new Piloto(sigId(idPilotos), "Carlos Sainz", "Scuderia Ferrari", RolPiloto.ESCUDERO, 9, 88, 90, 87, 84, 89, 83));
-        pilotos.add(new Piloto(sigId(idPilotos), "Max Verstappen", "Red Bull Racing", RolPiloto.LIDER, 10, 99, 97, 96, 98, 99, 98));
-        pilotos.add(new Piloto(sigId(idPilotos), "Sergio Pérez", "Red Bull Racing", RolPiloto.ESCUDERO, 13, 83, 86, 88, 80, 85, 75));
-        pilotos.add(new Piloto(sigId(idPilotos), "Lando Norris", "McLaren", RolPiloto.LIDER, 6, 91, 90, 89, 86, 91, 85));
-        pilotos.add(new Piloto(sigId(idPilotos), "Oscar Piastri", "McLaren", RolPiloto.ESCUDERO, 2, 86, 84, 85, 80, 86, 78));
-        pilotos.add(new Piloto(sigId(idPilotos), "Fernando Alonso", "Aston Martin", RolPiloto.LIDER, 22, 90, 95, 88, 90, 92, 93));
-        pilotos.add(new Piloto(sigId(idPilotos), "Lance Stroll", "Aston Martin", RolPiloto.ESCUDERO, 7, 76, 74, 78, 72, 78, 70));
-        pilotos.add(new Piloto(sigId(idPilotos), "Pierre Gasly", "Alpine", RolPiloto.LIDER, 8, 83, 82, 84, 83, 84, 79));
-        pilotos.add(new Piloto(sigId(idPilotos), "Esteban Ocon", "Alpine", RolPiloto.ESCUDERO, 8, 80, 83, 82, 78, 82, 77));
+        agregarPiloto(new Piloto(sigId(idPilotos), "Lewis Hamilton", "Mercedes-AMG Petronas", RolPiloto.LIDER, 18, 95, 94, 90, 97, 96, 95), "lewis.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "George Russell", "Mercedes-AMG Petronas", RolPiloto.ESCUDERO, 5, 87, 85, 88, 82, 88, 80), "george.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "Charles Leclerc", "Scuderia Ferrari", RolPiloto.LIDER, 7, 96, 88, 90, 85, 93, 84), "leclerc.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "Carlos Sainz", "Scuderia Ferrari", RolPiloto.ESCUDERO, 9, 88, 90, 87, 84, 89, 83), "carlos sainz.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "Max Verstappen", "Red Bull Racing", RolPiloto.LIDER, 10, 99, 97, 96, 98, 99, 98), "max.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "Sergio Pérez", "Red Bull Racing", RolPiloto.ESCUDERO, 13, 83, 86, 88, 80, 85, 75), "sergio perez.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "Lando Norris", "McLaren", RolPiloto.LIDER, 6, 91, 90, 89, 86, 91, 85), "lando norris.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "Oscar Piastri", "McLaren", RolPiloto.ESCUDERO, 2, 86, 84, 85, 80, 86, 78), "piastri.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "Fernando Alonso", "Aston Martin", RolPiloto.LIDER, 22, 90, 95, 88, 90, 92, 93), "fernando alonzo.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "Lance Stroll", "Aston Martin", RolPiloto.ESCUDERO, 7, 76, 74, 78, 72, 78, 70), "lance stroll.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "Pierre Gasly", "Alpine", RolPiloto.LIDER, 8, 83, 82, 84, 83, 84, 79), "pierre gasly.jpg");
+        agregarPiloto(new Piloto(sigId(idPilotos), "Esteban Ocon", "Alpine", RolPiloto.ESCUDERO, 8, 80, 83, 82, 78, 82, 77), "esteban ocon.jpg");
 
         // ---- Circuitos ----
         circuitos.add(new Circuito(sigId(idCircuitos), "Circuit de Monaco", "Mónaco", 3.337, 78,

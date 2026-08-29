@@ -23,7 +23,7 @@ public class CampeonPane extends VBox {
         Map.Entry<Piloto, Integer> campeonPiloto = campeonato.getClasificacionPilotos().get(0);
         Map.Entry<String, Integer> campeonEquipo = campeonato.getClasificacionEquipos().get(0);
 
-        StackPane trofeo = IconFactory.contenedor(IconFactory.banderaCuadros(), 100);
+        StackPane trofeo = IconFactory.avatarPiloto(campeonPiloto.getKey(), 100);
 
         Label titulo = new Label("¡CAMPEÓN DE LA TEMPORADA!");
         titulo.getStyleClass().add("titulo-principal");

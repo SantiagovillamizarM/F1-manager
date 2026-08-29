@@ -5,6 +5,7 @@ import com.f1manager.infraestructura.ui.util.IconFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 
@@ -18,7 +19,7 @@ public class PanelListaPilotos extends HBox {
 
     private final VBox columnaLista = new VBox(12);
     private final StackPane panelDetalle = new StackPane();
-    private VBox filaSeleccionada;
+    private HBox filaSeleccionada;
 
     public PanelListaPilotos(List<Piloto> pilotos) {
         setSpacing(28);
@@ -62,7 +63,9 @@ public class PanelListaPilotos extends HBox {
         }
     }
 
-    private VBox construirFila(Piloto piloto) {
+    private HBox construirFila(Piloto piloto) {
+        StackPane avatar = IconFactory.avatarPiloto(piloto, 46);
+
         Label nombre = new Label(piloto.getNombre());
         nombre.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5f6fa;");
 
@@ -70,13 +73,14 @@ public class PanelListaPilotos extends HBox {
                 piloto.getId(), piloto.getEquipo(), piloto.getRol().getEtiqueta(), piloto.getHabilidadPromedio()));
         detalle.getStyleClass().add("texto-secundario");
 
-        VBox fila = new VBox(4, nombre, detalle);
+        HBox fila = new HBox(14, avatar, new VBox(4, nombre, detalle));
+        fila.setAlignment(Pos.CENTER_LEFT);
         fila.getStyleClass().add("fila-lista");
         fila.setOnMouseClicked(e -> seleccionar(piloto, fila));
         return fila;
     }
 
-    private void seleccionar(Piloto piloto, VBox fila) {
+    private void seleccionar(Piloto piloto, HBox fila) {
         if (filaSeleccionada != null) {
             filaSeleccionada.getStyleClass().remove("fila-lista-seleccionada");
             filaSeleccionada.getStyleClass().add("fila-lista");
@@ -95,7 +99,7 @@ public class PanelListaPilotos extends HBox {
     }
 
     private void mostrarFicha(Piloto piloto) {
-        StackPane casco = IconFactory.contenedor(IconFactory.casco(IconFactory.BLANCO), 90);
+        StackPane avatar = IconFactory.avatarPiloto(piloto, 140);
 
         Label nombre = new Label(piloto.getNombre());
         nombre.getStyleClass().add("titulo-seccion");
@@ -103,7 +107,7 @@ public class PanelListaPilotos extends HBox {
         Label equipoRol = new Label(piloto.getEquipo() + "  ·  " + piloto.getRol().getEtiqueta());
         equipoRol.getStyleClass().add("texto-rojo");
 
-        HBox encabezado = new HBox(20, casco, new VBox(6, nombre, equipoRol));
+        HBox encabezado = new HBox(20, avatar, new VBox(6, nombre, equipoRol));
         encabezado.setAlignment(Pos.CENTER_LEFT);
 
         GridPane datos = new GridPane();
@@ -142,24 +146,15 @@ public class PanelListaPilotos extends HBox {
         HBox.setHgrow(espaciadorEncabezado, Priority.ALWAYS);
         HBox encabezadoBarra = new HBox(etiquetaBarra, espaciadorEncabezado, valorBarra);
 
-        Region fondoBarra = new Region();
-        fondoBarra.setStyle("-fx-background-color: #232a3d; -fx-background-radius: 6;");
-        fondoBarra.setPrefHeight(14);
-        fondoBarra.setMaxWidth(Double.MAX_VALUE);
-        Region relleno = new Region();
-        relleno.setStyle("-fx-background-color: linear-gradient(to right, #e10600, #ff2b2b); -fx-background-radius: 6;");
-        relleno.setPrefHeight(14);
-        // Se enlaza al ancho REAL del fondo (no a un número fijo), porque el
-        // contenedor se estira a lo que mida el panel. Con un ancho fijo como
-        // referencia, el relleno solo llenaba esa porción fija del contenedor
-        // real (mucho más ancho), pareciendo siempre parcial aunque el valor fuera 100.
-        relleno.prefWidthProperty().bind(fondoBarra.widthProperty().multiply(valor / 100.0));
-        // Sin este límite, un Region sin maxWidth propio se estira al ancho completo
-        // del StackPane (igual que fondoBarra), y la barra roja siempre se ve al 100%.
-        relleno.setMaxWidth(Region.USE_PREF_SIZE);
-        StackPane pilaBarra = new StackPane(fondoBarra, relleno);
-        StackPane.setAlignment(relleno, Pos.CENTER_LEFT);
-        barra.getChildren().addAll(encabezadoBarra, pilaBarra);
+        // ProgressBar nativo en vez de dos Regions con el ancho enlazado a mano: ese enlace
+        // dependía del orden exacto de layout entre ambos Regions y dejaba de pintarse en
+        // esta pantalla. El control nativo calcula el relleno proporcional de forma confiable.
+        ProgressBar progreso = new ProgressBar(valor / 100.0);
+        progreso.getStyleClass().add("barra-habilidad");
+        progreso.setMaxWidth(Double.MAX_VALUE);
+        progreso.setPrefHeight(14);
+
+        barra.getChildren().addAll(encabezadoBarra, progreso);
         return barra;
     }
 

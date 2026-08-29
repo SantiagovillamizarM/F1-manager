@@ -38,13 +38,13 @@ public class MenuPrincipal extends BorderPane {
         grilla.setHgap(20);
         grilla.setVgap(20);
 
-        grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.pistaSilueta(IconFactory.BLANCO), 60),
+        grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.logoGestionCircuitos(), 60),
                 "GESTIÓN DE CIRCUITOS", () -> gestor.navegarA(new ModuloCircuitos(gestor)), false), 0, 0);
-        grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.casco(IconFactory.BLANCO), 60),
+        grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.logoGestionPilotos(), 60),
                 "GESTIÓN DE PILOTOS", () -> gestor.navegarA(new ModuloPilotos(gestor)), false), 1, 0);
         grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.logoGestionEquipos(), 60),
                 "GESTIÓN DE EQUIPOS", () -> gestor.navegarA(new ModuloEquipos(gestor)), false), 0, 1);
-        grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.monoplaza(IconFactory.BLANCO), 60),
+        grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.logoGestionVehiculos(), 60),
                 "GESTIÓN DE VEHÍCULOS", () -> gestor.navegarA(new ModuloVehiculos(gestor)), false), 1, 1);
 
         VBox columnaAdmin = new VBox(20, tituloAdmin, grilla);
@@ -55,7 +55,7 @@ public class MenuPrincipal extends BorderPane {
         tituloCompetencia.getStyleClass().add("titulo-seccion");
 
         TarjetaOpcion tarjetaCarrera = new TarjetaOpcion(
-                IconFactory.contenedor(IconFactory.banderaCuadros(), 60),
+                IconFactory.contenedor(IconFactory.logoCarrera(), 60),
                 "CARRERA", () -> gestor.navegarA(new PantallaCarrera(gestor)), false);
 
         TarjetaOpcion tarjetaCampeonato = new TarjetaOpcion(

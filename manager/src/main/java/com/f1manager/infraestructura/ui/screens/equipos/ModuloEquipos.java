@@ -22,7 +22,7 @@ public class ModuloEquipos extends ModuloGestionBase {
         quitarBarraLateral();
 
         TarjetaOpcion listar = new TarjetaOpcion(
-                IconFactory.contenedor(IconFactory.escudoEquipo(IconFactory.BLANCO), 60),
+                IconFactory.contenedor(IconFactory.logoGestionEquipos(), 60),
                 "LISTAR\nEQUIPOS", () -> irA(0), false);
         TarjetaOpcion registrar = new TarjetaOpcion(
                 IconFactory.contenedor(IconFactory.documento(IconFactory.BLANCO), 60),
@@ -39,7 +39,7 @@ public class ModuloEquipos extends ModuloGestionBase {
 
     private List<BarraMiniIconos.Item> construirItemsBarra() {
         return List.of(
-                new BarraMiniIconos.Item(IconFactory.escudoEquipo(IconFactory.BLANCO), "Listar equipos", () -> irA(0)),
+                new BarraMiniIconos.Item(IconFactory.logoGestionEquipos(), "Listar equipos", () -> irA(0)),
                 new BarraMiniIconos.Item(IconFactory.documento(IconFactory.BLANCO), "Registrar equipo", () -> irA(1)),
                 new BarraMiniIconos.Item(IconFactory.equis(IconFactory.BLANCO), "Eliminar equipo", () -> irA(2))
         );

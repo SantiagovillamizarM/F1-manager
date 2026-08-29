@@ -4,12 +4,15 @@ import com.f1manager.infraestructura.persistencia.DataStore;
 import com.f1manager.dominio.excepcion.ValidacionException;
 import com.f1manager.infraestructura.ui.components.CampoBusqueda;
 import com.f1manager.dominio.modelo.Piloto;
+import com.f1manager.infraestructura.ui.util.IconFactory;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 
@@ -83,10 +86,12 @@ actualizarLista("");
             return;
         }
         for (Piloto p : pilotos) {
+            StackPane avatar = IconFactory.avatarPiloto(p, 34);
             Label linea = new Label(String.format("ID %d   %s   ·   %s   ·   %s",
                     p.getId(), p.getNombre(), p.getEquipo(), p.getRol().getEtiqueta()));
             linea.getStyleClass().add("texto-normal");
-            VBox fila = new VBox(linea);
+            HBox fila = new HBox(12, avatar, linea);
+            fila.setAlignment(Pos.CENTER_LEFT);
             fila.getStyleClass().add("fila-lista");
             fila.setOnMouseClicked(e -> campoId.setText(String.valueOf(p.getId())));
             columnaLista.getChildren().add(fila);
