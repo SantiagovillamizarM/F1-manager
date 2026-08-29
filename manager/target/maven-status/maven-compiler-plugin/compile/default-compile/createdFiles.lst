@@ -1,4 +1,5 @@
 com\f1manager\infraestructura\ui\components\BarraMiniIconos.class
+com\f1manager\infraestructura\ui\util\GestorSonido.class
 com\f1manager\dominio\servicio\SimuladorCarrera.class
 com\f1manager\infraestructura\ui\MenuPrincipal.class
 com\f1manager\infraestructura\ui\PantallaBienvenida.class
@@ -30,6 +31,7 @@ com\f1manager\dominio\modelo\TipoNeumatico.class
 com\f1manager\infraestructura\ui\screens\circuitos\PanelListaCircuitos.class
 com\f1manager\infraestructura\ui\screens\pilotos\ModuloPilotos.class
 com\f1manager\dominio\servicio\SimuladorCarrera$1.class
+com\f1manager\infraestructura\ui\util\GestorImagenes.class
 com\f1manager\infraestructura\ui\util\PistaGenerador.class
 com\f1manager\dominio\modelo\Circuito.class
 com\f1manager\infraestructura\ui\components\FondoAnimado$1.class

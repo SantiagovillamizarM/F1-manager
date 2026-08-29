@@ -38,7 +38,7 @@ public class EquiposListarPane extends VBox {
     }
 
     private VBox construirTarjeta(Equipo equipo) {
-        StackPane icono = IconFactory.contenedor(IconFactory.escudoEquipo(IconFactory.BLANCO), 54);
+        StackPane icono = IconFactory.contenedor(IconFactory.logoEquipo(equipo.getNombre(), IconFactory.BLANCO), 54);
 
         Label nombre = new Label(equipo.getNombre());
         nombre.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #f5f6fa;");

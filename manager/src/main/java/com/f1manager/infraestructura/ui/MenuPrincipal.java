@@ -42,7 +42,7 @@ public class MenuPrincipal extends BorderPane {
                 "GESTIÓN DE CIRCUITOS", () -> gestor.navegarA(new ModuloCircuitos(gestor)), false), 0, 0);
         grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.casco(IconFactory.BLANCO), 60),
                 "GESTIÓN DE PILOTOS", () -> gestor.navegarA(new ModuloPilotos(gestor)), false), 1, 0);
-        grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.escudoEquipo(IconFactory.BLANCO), 60),
+        grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.logoGestionEquipos(), 60),
                 "GESTIÓN DE EQUIPOS", () -> gestor.navegarA(new ModuloEquipos(gestor)), false), 0, 1);
         grilla.add(new TarjetaOpcion(IconFactory.contenedor(IconFactory.monoplaza(IconFactory.BLANCO), 60),
                 "GESTIÓN DE VEHÍCULOS", () -> gestor.navegarA(new ModuloVehiculos(gestor)), false), 1, 1);
@@ -59,7 +59,7 @@ public class MenuPrincipal extends BorderPane {
                 "CARRERA", () -> gestor.navegarA(new PantallaCarrera(gestor)), false);
 
         TarjetaOpcion tarjetaCampeonato = new TarjetaOpcion(
-                IconFactory.contenedor(IconFactory.escudoEquipo(IconFactory.BLANCO), 60),
+                IconFactory.contenedor(IconFactory.logoCampeonato(), 60),
                 "MODO CAMPEONATO", () -> gestor.navegarA(new PantallaCampeonato(gestor)), false);
 
         VBox columnaCarrera = new VBox(20, tituloCompetencia, tarjetaCarrera, tarjetaCampeonato);

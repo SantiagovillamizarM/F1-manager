@@ -10,6 +10,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.scene.image.ImageView;
+import java.util.Map;
 public final class IconFactory {
 
     public static final Color ROJO = Color.web("#e10600");
@@ -17,7 +18,39 @@ public final class IconFactory {
     public static final Color BLANCO = Color.web("#f5f6fa");
     public static final Color GRIS = Color.web("#464d5e");
 
+    /** Asocia una palabra clave del nombre del equipo (en minúsculas) con su logo local en /imagenes/scuderias. */
+    private static final Map<String, String> ARCHIVOS_LOGO_SCUDERIA = Map.of(
+            "ferrari", "scuderia ferrari.png",
+            "mercedes", "scuderia mercedes.png",
+            "red bull", "scuderia redbull.png",
+            "mclaren", "scuderia mclaren.png",
+            "aston martin", "scuderia aston martin.png",
+            "alpine", "scuderia alpine.png"
+    );
+
     private IconFactory() {
+    }
+
+    /**
+     * Logo real de la escudería según su nombre (ej. "Scuderia Ferrari" -> logo de Ferrari),
+     * cargado desde /imagenes/scuderias. Si el equipo no coincide con ninguna escudería
+     * conocida (por ejemplo, uno registrado manualmente por el usuario), se usa el
+     * escudo genérico como respaldo.
+     */
+    public static Group logoEquipo(String nombreEquipo, Color colorReserva) {
+        String normalizado = nombreEquipo == null ? "" : nombreEquipo.toLowerCase();
+        for (var entrada : ARCHIVOS_LOGO_SCUDERIA.entrySet()) {
+            if (normalizado.contains(entrada.getKey())) {
+                Image imagen = GestorImagenes.cargar("scuderias/" + entrada.getValue());
+                if (imagen != null) {
+                    ImageView vista = new ImageView(imagen);
+                    vista.setPreserveRatio(true);
+                    vista.setFitWidth(50);
+                    return new Group(vista);
+                }
+            }
+        }
+        return escudoEquipo(colorReserva);
     }
 
     /** Envuelve un ícono en un contenedor cuadrado con fondo rojo redondeado, usado en las tarjetas del menú. */
@@ -136,6 +169,30 @@ public final class IconFactory {
         vista.setPreserveRatio(true);
         vista.setFitWidth(50);
         return new Group(vista);
+    }
+
+    /** Logo del botón "Gestión de equipos" del menú principal, cargado desde /imagenes. */
+    public static Group logoGestionEquipos() {
+        Image imagen = GestorImagenes.cargar("logo gestion de equipo.png");
+        if (imagen != null) {
+            ImageView vista = new ImageView(imagen);
+            vista.setPreserveRatio(true);
+            vista.setFitWidth(50);
+            return new Group(vista);
+        }
+        return escudoEquipo(BLANCO);
+    }
+
+    /** Logo del botón "Modo campeonato" del menú principal, cargado desde /imagenes. */
+    public static Group logoCampeonato() {
+        Image imagen = GestorImagenes.cargar("logo campeonato.png");
+        if (imagen != null) {
+            ImageView vista = new ImageView(imagen);
+            vista.setPreserveRatio(true);
+            vista.setFitWidth(50);
+            return new Group(vista);
+        }
+        return escudoEquipo(BLANCO);
     }
 
     /** Ícono de equipo: escudo con franja diagonal. */

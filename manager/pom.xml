@@ -35,6 +35,13 @@
             <version>${javafx.version}</version>
         </dependency>
 
+        <!-- Reproducción de audio (efectos de sonido / música) -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -1,9 +1,13 @@
 package com.f1manager.infraestructura.ui;
 
 import com.f1manager.infraestructura.ui.util.GestorEscenas;
+import com.f1manager.infraestructura.ui.util.GestorSonido;
 import com.f1manager.infraestructura.ui.util.IconFactory;
 import javafx.animation.FadeTransition;
+import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
+import javafx.animation.Timeline;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -21,6 +25,7 @@ import javafx.util.Duration;
 public class PantallaBienvenida extends StackPane {
 
     private boolean avanzando = false;
+    private boolean puedeAvanzar = false;
 
     public PantallaBienvenida(GestorEscenas gestor) {
         getStyleClass().add("pantalla");
@@ -32,7 +37,7 @@ public class PantallaBienvenida extends StackPane {
         titulo.getStyleClass().add("titulo-principal");
         titulo.setOpacity(0);
 
-        Label subtitulo = new Label("Presiona cualquier tecla para continuar");
+        Label subtitulo = new Label("Cargando");
         subtitulo.getStyleClass().add("subtitulo");
         subtitulo.setOpacity(0);
 
@@ -62,6 +67,27 @@ public class PantallaBienvenida extends StackPane {
 
         new SequentialTransition(fadePantalla, fadeLogo, fadeTitulo, fadeSubtitulo).play();
 
+        // Solo suena una vez: esta pantalla solo se construye una vez, al arrancar la aplicación.
+        GestorSonido.reproducir("Intro audio.m4a");
+
+        // "Cargando..." con los puntos escribiéndose mientras suena la intro, para que la espera no se vea rara.
+        int[] puntos = {0};
+        Timeline animacionCarga = new Timeline(new KeyFrame(Duration.millis(400), e -> {
+            puntos[0] = (puntos[0] + 1) % 4;
+            subtitulo.setText("Cargando" + ".".repeat(puntos[0]));
+        }));
+        animacionCarga.setCycleCount(Timeline.INDEFINITE);
+        animacionCarga.play();
+
+        // Al terminar la carga (4.5s), se cambia el mensaje y recién ahí se puede avanzar.
+        PauseTransition esperaParaAvanzar = new PauseTransition(Duration.seconds(4.5));
+        esperaParaAvanzar.setOnFinished(e -> {
+            animacionCarga.stop();
+            subtitulo.setText("Presiona cualquier tecla para continuar");
+            puedeAvanzar = true;
+        });
+        esperaParaAvanzar.play();
+
         // --- Avanzar al menú principal con cualquier tecla ---
         sceneProperty().addListener((obs, anterior, nuevaEscena) -> {
             if (nuevaEscena != null) {
@@ -73,7 +99,7 @@ public class PantallaBienvenida extends StackPane {
     }
 
     private void avanzar(GestorEscenas gestor) {
-        if (avanzando) {
+        if (!puedeAvanzar || avanzando) {
             return;
         }
         avanzando = true;

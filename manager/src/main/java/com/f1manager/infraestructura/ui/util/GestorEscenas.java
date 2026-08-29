@@ -5,8 +5,11 @@ import com.f1manager.infraestructura.ui.components.FondoAnimado;
 import javafx.animation.FadeTransition;
 import javafx.animation.SequentialTransition;
 import javafx.application.Platform;
+import javafx.event.EventTarget;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -35,6 +38,11 @@ public final class GestorEscenas {
         raiz.getChildren().addAll(fondo, contenido);
         Scene escena = new Scene(raiz, 1366, 820);
         escena.getStylesheets().add(getClass().getResource("/estilo.css").toExternalForm());
+        escena.addEventFilter(MouseEvent.MOUSE_CLICKED, e -> {
+            if (esBotonOHijoDeBoton(e.getTarget())) {
+                GestorSonido.reproducir("Click.mp3");
+            }
+        });
         stage.setScene(escena);
         stage.setTitle("F1 Manager");
         stage.setMinWidth(1024);
@@ -85,6 +93,7 @@ public final class GestorEscenas {
             return;
         }
         Node actual = contenido.getChildren().isEmpty() ? null : contenido.getChildren().get(0);
+        GestorSonido.reproducir("Transicion de esena.m4a");
 
         if (actual == null) {
             vista.setOpacity(0);
@@ -113,6 +122,23 @@ public final class GestorEscenas {
         entrada.setOnFinished(e -> animando = false);
 
         new SequentialTransition(salida).play();
+    }
+
+    /**
+     * El click puede caer sobre un hijo interno del elemento clicable (su texto o ícono),
+     * por eso se sube por los padres. Cualquier nodo con un manejador de click propio
+     * (tarjetas de menú, íconos de la barra lateral, botón de volver) cuenta como "botón",
+     * además de los controles Button/ButtonBase reales.
+     */
+    private static boolean esBotonOHijoDeBoton(EventTarget objetivo) {
+        Node nodo = objetivo instanceof Node ? (Node) objetivo : null;
+        while (nodo != null) {
+            if (nodo instanceof ButtonBase || nodo.getOnMouseClicked() != null) {
+                return true;
+            }
+            nodo = nodo.getParent();
+        }
+        return false;
     }
 
     /** Cierra correctamente la aplicación. */
