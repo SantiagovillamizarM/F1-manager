@@ -50,7 +50,10 @@ final class PilotoRepositorioMySQL {
         if (valorGuardado == null || valorGuardado.isBlank()) {
             return null;
         }
-        if (valorGuardado.contains("://")) {
+        // Una URL completa empieza con un esquema (ej. "file:/..." o "http://..."). En Windows,
+        // "file:" URIs suelen tener una sola barra ("file:/C:/..."), no "file://", así que buscar
+        // literalmente "://" no las detectaba y esos valores caían al caso de "nombre de archivo".
+        if (valorGuardado.matches("^[a-zA-Z][a-zA-Z0-9+.-]*:.*")) {
             return valorGuardado;
         }
         var recurso = PilotoRepositorioMySQL.class.getResource("/imagenes/corredores predeterminados/" + valorGuardado);
