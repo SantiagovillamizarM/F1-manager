@@ -18,6 +18,7 @@ com\f1manager\infraestructura\ui\screens\carrera\SeleccionCarreraPane.class
 com\f1manager\dominio\servicio\SimuladorCarrera$VueltasSimuladas.class
 com\f1manager\infraestructura\ui\screens\pilotos\PanelListaPilotos.class
 com\f1manager\infraestructura\ui\screens\carrera\AnimacionCarreraPane.class
+com\f1manager\infraestructura\persistencia\EquipoRepositorioMySQL.class
 com\f1manager\infraestructura\ui\screens\pilotos\ModuloPilotos.class
 com\f1manager\dominio\servicio\SimuladorCarrera$1.class
 com\f1manager\infraestructura\ui\util\GestorImagenes.class
@@ -45,8 +46,11 @@ com\f1manager\infraestructura\ui\screens\circuitos\ModuloCircuitos.class
 com\f1manager\dominio\modelo\RolPiloto.class
 com\f1manager\dominio\modelo\Campeonato.class
 com\f1manager\infraestructura\ui\screens\vehiculos\VehiculosConfigurarPane.class
+com\f1manager\infraestructura\persistencia\VehiculoRepositorioMySQL.class
 com\f1manager\infraestructura\ui\screens\carrera\PantallaCarrera.class
 com\f1manager\dominio\modelo\TipoNeumatico.class
+com\f1manager\infraestructura\persistencia\CircuitoRepositorioMySQL.class
+com\f1manager\infraestructura\persistencia\PilotoRepositorioMySQL.class
 com\f1manager\infraestructura\ui\screens\circuitos\PanelListaCircuitos.class
 com\f1manager\infraestructura\ui\util\PistaGenerador.class
 com\f1manager\infraestructura\ui\components\FondoAnimado$1.class

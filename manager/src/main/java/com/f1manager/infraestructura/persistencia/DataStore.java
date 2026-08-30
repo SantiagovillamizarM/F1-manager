@@ -1,6 +1,6 @@
-//Guarda toda la información del programa (todos los circuitos, pilotos, equipos y vehículos) 
-//mientras está abierto, y contiene las funciones para agregar, buscar y eliminar cada cosa, 
-// validando que los datos ingresados sean correctos.
+//Mantiene en memoria (para que la UI de JavaFX reaccione sola) todo lo que hay en la base de
+//datos MySQL: circuitos, pilotos, equipos y vehículos. Al arrancar, carga todo desde MySQL; cada
+//operación de agregar/eliminar/configurar escribe también en MySQL, no solo en memoria.
 package com.f1manager.infraestructura.persistencia;
 
 import com.f1manager.dominio.excepcion.ValidacionException;
@@ -9,7 +9,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public final class DataStore {
@@ -21,12 +20,8 @@ public final class DataStore {
     private final ObservableList<Equipo> equipos = FXCollections.observableArrayList();
     private final ObservableList<Monoplaza> vehiculos = FXCollections.observableArrayList();
 
-    private final AtomicInteger idCircuitos = new AtomicInteger(1);
-    private final AtomicInteger idPilotos = new AtomicInteger(1);
-    private final AtomicInteger idVehiculos = new AtomicInteger(1);
-
     private DataStore() {
-        cargarDatosIniciales();
+        cargarDesdeBaseDeDatos();
     }
 
     public static DataStore getInstancia() {
@@ -34,73 +29,14 @@ public final class DataStore {
     }
 
     // =====================================================================
-    // DATOS INICIALES
+    // CARGA INICIAL DESDE MYSQL
     // =====================================================================
 
-    /** Agrega un piloto sembrado con su foto real predeterminada (por nombre de archivo, ej. "max.jpg"). */
-    private void agregarPiloto(Piloto piloto, String archivoFoto) {
-        var recurso = DataStore.class.getResource("/imagenes/corredores predeterminados/" + archivoFoto);
-        if (recurso != null) {
-            piloto.setImagenUrl(recurso.toExternalForm());
-        }
-        pilotos.add(piloto);
-    }
-
-    private void cargarDatosIniciales() {
-        // ---- Equipos ----
-        equipos.add(new Equipo("Mercedes-AMG Petronas", "Alemania", "Mercedes"));
-        equipos.add(new Equipo("Scuderia Ferrari", "Italia", "Ferrari"));
-        equipos.add(new Equipo("Red Bull Racing", "Austria", "Honda RBPT"));
-        equipos.add(new Equipo("McLaren", "Reino Unido", "Mercedes"));
-        equipos.add(new Equipo("Aston Martin", "Reino Unido", "Mercedes"));
-        equipos.add(new Equipo("Alpine", "Francia", "Renault"));
-
-        // ---- Pilotos ----
-        // Orden de habilidades: curva, adelantamiento, recta, lluvia, seco, extremo
-        agregarPiloto(new Piloto(sigId(idPilotos), "Lewis Hamilton", "Mercedes-AMG Petronas", RolPiloto.LIDER, 18, 95, 94, 90, 97, 96, 95), "lewis.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "George Russell", "Mercedes-AMG Petronas", RolPiloto.ESCUDERO, 5, 87, 85, 88, 82, 88, 80), "george.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "Charles Leclerc", "Scuderia Ferrari", RolPiloto.LIDER, 7, 96, 88, 90, 85, 93, 84), "leclerc.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "Carlos Sainz", "Scuderia Ferrari", RolPiloto.ESCUDERO, 9, 88, 90, 87, 84, 89, 83), "carlos sainz.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "Max Verstappen", "Red Bull Racing", RolPiloto.LIDER, 10, 99, 97, 96, 98, 99, 98), "max.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "Sergio Pérez", "Red Bull Racing", RolPiloto.ESCUDERO, 13, 83, 86, 88, 80, 85, 75), "sergio perez.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "Lando Norris", "McLaren", RolPiloto.LIDER, 6, 91, 90, 89, 86, 91, 85), "lando norris.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "Oscar Piastri", "McLaren", RolPiloto.ESCUDERO, 2, 86, 84, 85, 80, 86, 78), "piastri.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "Fernando Alonso", "Aston Martin", RolPiloto.LIDER, 22, 90, 95, 88, 90, 92, 93), "fernando alonzo.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "Lance Stroll", "Aston Martin", RolPiloto.ESCUDERO, 7, 76, 74, 78, 72, 78, 70), "lance stroll.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "Pierre Gasly", "Alpine", RolPiloto.LIDER, 8, 83, 82, 84, 83, 84, 79), "pierre gasly.jpg");
-        agregarPiloto(new Piloto(sigId(idPilotos), "Esteban Ocon", "Alpine", RolPiloto.ESCUDERO, 8, 80, 83, 82, 78, 82, 77), "esteban ocon.jpg");
-
-        // ---- Circuitos ----
-        circuitos.add(new Circuito(sigId(idCircuitos), "Circuit de Monaco", "Mónaco", 3.337, 78,
-                "Trazado urbano estrecho y sinuoso por las calles de Montecarlo. Prioriza el "
-                        + "monoplaza y la precisión del piloto por encima de la potencia bruta."));
-        circuitos.add(new Circuito(sigId(idCircuitos), "Silverstone Circuit", "Reino Unido", 5.891, 52,
-                "Circuito rápido y fluido, cuna de la Fórmula 1, con curvas de alta velocidad "
-                        + "como Copse y Maggotts-Becketts."));
-        circuitos.add(new Circuito(sigId(idCircuitos), "Nürburgring", "Alemania", 5.148, 60,
-                "Trazado técnico y exigente, célebre por su combinación de curvas rápidas y "
-                        + "sectores lentos que ponen a prueba el equilibrio del monoplaza."));
-        circuitos.add(new Circuito(sigId(idCircuitos), "Autodromo Nazionale Monza", "Italia", 5.793, 53,
-                "El templo de la velocidad. Rectas larguísimas donde la baja carga aerodinámica "
-                        + "y la potencia del motor marcan la diferencia."));
-        circuitos.add(new Circuito(sigId(idCircuitos), "Circuit de Spa-Francorchamps", "Bélgica", 7.004, 44,
-                "Uno de los circuitos más largos y espectaculares del calendario, con el "
-                        + "legendario sector de Eau Rouge-Raidillon."));
-        circuitos.add(new Circuito(sigId(idCircuitos), "Suzuka International Racing Course", "Japón", 5.807, 53,
-                "Trazado en forma de ocho, técnico y muy respetado por los pilotos por su "
-                        + "fluidez y exigencia física."));
-
-        // ---- Monoplazas ----
-        vehiculos.add(new Monoplaza(sigId(idVehiculos), "W15", "Mercedes-AMG Petronas", "Mercedes", 345, 2.6));
-        vehiculos.add(new Monoplaza(sigId(idVehiculos), "SF-24", "Scuderia Ferrari", "Ferrari", 348, 2.5));
-        vehiculos.add(new Monoplaza(sigId(idVehiculos), "RB20", "Red Bull Racing", "Honda RBPT", 352, 2.4));
-        vehiculos.add(new Monoplaza(sigId(idVehiculos), "MCL38", "McLaren", "Mercedes", 347, 2.5));
-        vehiculos.add(new Monoplaza(sigId(idVehiculos), "AMR24", "Aston Martin", "Mercedes", 343, 2.7));
-        vehiculos.add(new Monoplaza(sigId(idVehiculos), "A524", "Alpine", "Renault", 340, 2.8));
-    }
-
-    private static int sigId(AtomicInteger contador) {
-        return contador.getAndIncrement();
+    private void cargarDesdeBaseDeDatos() {
+        equipos.setAll(EquipoRepositorioMySQL.listarTodos());
+        circuitos.setAll(CircuitoRepositorioMySQL.listarTodos());
+        pilotos.setAll(PilotoRepositorioMySQL.listarTodos());
+        vehiculos.setAll(VehiculoRepositorioMySQL.listarTodos());
     }
 
     // =====================================================================
@@ -120,7 +56,8 @@ public final class DataStore {
         int vueltas = parsearEnteroPositivo(vueltasTexto, "El número de vueltas debe ser un entero mayor que 0.");
         String desc = esVacio(descripcion) ? "Sin descripción disponible." : descripcion.trim();
 
-        Circuito circuito = new Circuito(sigId(idCircuitos), nombre.trim(), pais.trim(), longitud, vueltas, desc);
+        int id = CircuitoRepositorioMySQL.insertarYObtenerId(nombre.trim(), pais.trim(), longitud, vueltas, desc);
+        Circuito circuito = new Circuito(id, nombre.trim(), pais.trim(), longitud, vueltas, desc);
         circuitos.add(circuito);
         return circuito;
     }
@@ -139,6 +76,7 @@ public final class DataStore {
         int id = parsearEnteroPositivo(idTexto, "Ingrese un ID numérico válido.");
         Circuito encontrado = circuitos.stream().filter(c -> c.getId() == id).findFirst()
                 .orElseThrow(() -> new ValidacionException("No existe ningún circuito con el ID " + id + "."));
+        CircuitoRepositorioMySQL.eliminar(id);
         circuitos.remove(encontrado);
     }
 
@@ -158,7 +96,8 @@ public final class DataStore {
 
     public Piloto registrarPiloto(String nombre, String equipo, RolPiloto rol, String experienciaTexto,
                                    String curvaTexto, String adelantamientoTexto, String rectaTexto,
-                                   String lluviaTexto, String secoTexto, String extremoTexto) throws ValidacionException {
+                                   String lluviaTexto, String secoTexto, String extremoTexto,
+                                   String imagenUrl) throws ValidacionException {
         if (esVacio(nombre)) {
             throw new ValidacionException("El nombre del piloto es obligatorio.");
         }
@@ -180,8 +119,11 @@ public final class DataStore {
         int seco = parsearHabilidad(secoTexto, "seco");
         int extremo = parsearHabilidad(extremoTexto, "clima extremo");
 
-        Piloto piloto = new Piloto(sigId(idPilotos), nombre.trim(), equipo, rol, experiencia,
+        int id = PilotoRepositorioMySQL.insertarYObtenerId(nombre.trim(), equipo, rol, experiencia,
+                curva, adelantamiento, recta, lluvia, seco, extremo, imagenUrl);
+        Piloto piloto = new Piloto(id, nombre.trim(), equipo, rol, experiencia,
                 curva, adelantamiento, recta, lluvia, seco, extremo);
+        piloto.setImagenUrl(imagenUrl);
         pilotos.add(piloto);
         return piloto;
     }
@@ -190,6 +132,7 @@ public final class DataStore {
         int id = parsearEnteroPositivo(idTexto, "Ingrese un ID numérico válido.");
         Piloto encontrado = pilotos.stream().filter(p -> p.getId() == id).findFirst()
                 .orElseThrow(() -> new ValidacionException("No existe ningún piloto con el ID " + id + "."));
+        PilotoRepositorioMySQL.eliminar(id);
         pilotos.remove(encontrado);
     }
 
@@ -217,6 +160,7 @@ public final class DataStore {
             throw new ValidacionException("Ya existe un equipo registrado con ese nombre.");
         }
         Equipo equipo = new Equipo(nombre.trim(), pais.trim(), motor.trim());
+        EquipoRepositorioMySQL.insertar(equipo);
         equipos.add(equipo);
         return equipo;
     }
@@ -228,6 +172,7 @@ public final class DataStore {
         String nombre = nombreTexto.trim();
         Equipo encontrado = equipos.stream().filter(e -> e.getNombre().equalsIgnoreCase(nombre)).findFirst()
                 .orElseThrow(() -> new ValidacionException("No existe ningún equipo llamado \"" + nombre + "\"."));
+        EquipoRepositorioMySQL.eliminar(encontrado.getNombre());
         equipos.remove(encontrado);
     }
 
@@ -251,6 +196,7 @@ public final class DataStore {
         vehiculo.setModoConduccion(modo);
         vehiculo.setTipoNeumatico(neumatico);
         vehiculo.setPresionAire(presion);
+        VehiculoRepositorioMySQL.actualizar(vehiculo);
     }
 
     private static double parsearPresion(String texto) throws ValidacionException {

@@ -1,6 +1,5 @@
 package com.f1manager.infraestructura.ui.screens.pilotos;
 
-import com.f1manager.dominio.modelo.Piloto;
 import com.f1manager.infraestructura.persistencia.DataStore;
 import com.f1manager.dominio.excepcion.ValidacionException;
 import com.f1manager.dominio.modelo.RolPiloto;
@@ -225,12 +224,12 @@ public class PilotosRegistrarPane extends VBox {
     private void guardar() {
         try {
             actualizarEquipos();
-            Piloto nuevo = DataStore.getInstancia().registrarPiloto(
+            DataStore.getInstancia().registrarPiloto(
                     campoNombre.getText(), comboEquipo.getValue(), comboRol.getValue(),
                     campoExperiencia.getText(),
                     campoCurva.getText(), campoAdelantamiento.getText(), campoRecta.getText(),
-                    campoLluvia.getText(), campoSeco.getText(), campoExtremo.getText());
-            nuevo.setImagenUrl(imagenSeleccionadaUrl);
+                    campoLluvia.getText(), campoSeco.getText(), campoExtremo.getText(),
+                    imagenSeleccionadaUrl);
             mensaje.getStyleClass().removeAll("error-label");
             mensaje.getStyleClass().add("texto-rojo");
             mensaje.setText("Piloto registrado correctamente.");
