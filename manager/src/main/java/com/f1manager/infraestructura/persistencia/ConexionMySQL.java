@@ -10,7 +10,7 @@ public final class ConexionMySQL {
 
     private static final String URL = "jdbc:mysql://localhost:3306/f1_manager";
     private static final String USUARIO = "root";
-    private static final String CONTRASENA = "TU_CONTRASEÑA_AQUI";
+    private static final String CONTRASENA = "p14048ci";
 
     private ConexionMySQL() {
     }

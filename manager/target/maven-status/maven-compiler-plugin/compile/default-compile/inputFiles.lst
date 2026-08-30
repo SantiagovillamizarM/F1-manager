@@ -11,6 +11,7 @@ C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\dominio
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\dominio\modelo\RolPiloto.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\dominio\modelo\TipoNeumatico.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\dominio\servicio\SimuladorCarrera.java
+C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\persistencia\ConexionMySQL.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\persistencia\DataStore.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\components\BarraMiniIconos.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\components\CampoBusqueda.java

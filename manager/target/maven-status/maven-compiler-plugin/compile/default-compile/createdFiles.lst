@@ -10,6 +10,7 @@ com\f1manager\dominio\modelo\Piloto.class
 com\f1manager\infraestructura\ui\components\BarraMiniIconos$Item.class
 com\f1manager\infraestructura\ui\components\TarjetaOpcion.class
 com\f1manager\infraestructura\ui\screens\vehiculos\ModuloVehiculos.class
+com\f1manager\infraestructura\persistencia\ConexionMySQL.class
 com\f1manager\dominio\servicio\SimuladorCarrera$ResultadoSimulacion.class
 com\f1manager\infraestructura\ui\screens\circuitos\CircuitosListarPane.class
 com\f1manager\infraestructura\ui\screens\pilotos\PilotosRegistrarPane.class
