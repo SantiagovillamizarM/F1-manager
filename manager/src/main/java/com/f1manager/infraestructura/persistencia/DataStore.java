@@ -172,6 +172,17 @@ public final class DataStore {
         String nombre = nombreTexto.trim();
         Equipo encontrado = equipos.stream().filter(e -> e.getNombre().equalsIgnoreCase(nombre)).findFirst()
                 .orElseThrow(() -> new ValidacionException("No existe ningún equipo llamado \"" + nombre + "\"."));
+
+        // Se valida en Java antes de tocar MySQL: si no, la restricción de llave foránea
+        // (pilotos/vehiculos -> equipos) rechaza el DELETE y sube como una excepción cruda,
+        // sin un mensaje que el usuario pueda entender.
+        boolean tienePilotos = !getIdsPilotosDeEquipo(encontrado.getNombre()).isEmpty();
+        boolean tieneVehiculo = getVehiculoPorEquipo(encontrado.getNombre()) != null;
+        if (tienePilotos || tieneVehiculo) {
+            throw new ValidacionException("No se puede eliminar \"" + encontrado.getNombre()
+                    + "\": todavía tiene pilotos o un vehículo asignado. Elimínalos primero.");
+        }
+
         EquipoRepositorioMySQL.eliminar(encontrado.getNombre());
         equipos.remove(encontrado);
     }
