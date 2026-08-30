@@ -8,6 +8,7 @@ import com.f1manager.infraestructura.ui.screens.circuitos.ModuloCircuitos;
 import com.f1manager.infraestructura.ui.screens.equipos.ModuloEquipos;
 import com.f1manager.infraestructura.ui.screens.pilotos.ModuloPilotos;
 import com.f1manager.infraestructura.ui.screens.vehiculos.ModuloVehiculos;
+import com.f1manager.infraestructura.ui.util.GestorSonido;
 import com.f1manager.infraestructura.ui.util.IconFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -100,7 +101,12 @@ public class MenuPrincipal extends BorderPane {
         Region espaciador = new Region();
         HBox.setHgrow(espaciador, Priority.ALWAYS);
 
-        HBox barra = new HBox(20, marcaBox, espaciador);
+        Button botonMute = new Button(GestorSonido.isMusicaDeFondoMuteada() ? "ACTIVAR MÚSICA" : "MUTEAR MÚSICA");
+        botonMute.getStyleClass().add("boton-secundario");
+        botonMute.setOnAction(e -> botonMute.setText(
+                GestorSonido.alternarMuteMusicaDeFondo() ? "ACTIVAR MÚSICA" : "MUTEAR MÚSICA"));
+
+        HBox barra = new HBox(20, marcaBox, espaciador, botonMute);
         barra.getStyleClass().add("barra-superior");
         barra.setAlignment(Pos.CENTER_LEFT);
         barra.setPadding(new Insets(16, 30, 16, 30));

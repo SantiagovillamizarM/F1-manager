@@ -3,12 +3,16 @@ package com.f1manager.infraestructura.ui.screens.carrera;
 import com.f1manager.dominio.modelo.Circuito;
 import com.f1manager.dominio.modelo.ResultadoCarrera;
 import com.f1manager.dominio.servicio.SimuladorCarrera;
+import com.f1manager.infraestructura.ui.util.FotosChoque;
 import com.f1manager.infraestructura.ui.util.IconFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -21,6 +25,7 @@ import java.util.stream.Collectors;
 public class ResultadosCarreraPane extends VBox {
 
     private final StackPane panelDetalle = new StackPane();
+    private final SimuladorCarrera.ResultadoSimulacion simulacion;
     private HBox filaSeleccionada;
 
     public ResultadosCarreraPane(Circuito circuito, SimuladorCarrera.ResultadoSimulacion simulacion,
@@ -32,6 +37,7 @@ public class ResultadosCarreraPane extends VBox {
     public ResultadosCarreraPane(Circuito circuito, SimuladorCarrera.ResultadoSimulacion simulacion,
                                   String textoBoton1, Runnable accionBoton1,
                                   String textoBoton2, Runnable accionBoton2) {
+        this.simulacion = simulacion;
         setSpacing(20);
         setPadding(new Insets(10));
 
@@ -184,6 +190,30 @@ public class ResultadosCarreraPane extends VBox {
 
         VBox contenido = new VBox(12, encabezado, vehiculo, velocidadMax, posicionFinal, tiempoTotal, promedio,
                 desgaste, pits, tituloVueltas, scrollVueltas);
+        if (r.isDnf()) {
+            contenido.getChildren().add(construirSeccionFotosChoque(r));
+        }
         panelDetalle.getChildren().setAll(contenido);
+    }
+
+    /** Las 3 fotos del choque de este piloto, con el título según si fue en solitario o contra otro. */
+    private VBox construirSeccionFotosChoque(ResultadoCarrera r) {
+        String titulo = r.esChoqueGrupal()
+                ? "Imágenes del choque entre " + r.getPiloto().getNombre() + " y " + r.getRivalChoque().getNombre()
+                : "Imagen de choque de " + r.getPiloto().getNombre();
+
+        Label etiqueta = new Label(titulo);
+        etiqueta.getStyleClass().add("etiqueta-campo");
+        etiqueta.setWrapText(true);
+
+        FlowPane filaFotos = new FlowPane(10, 10);
+        for (Image foto : FotosChoque.paraChoque(simulacion, r)) {
+            ImageView vista = new ImageView(foto);
+            vista.setPreserveRatio(true);
+            vista.setFitWidth(170);
+            filaFotos.getChildren().add(vista);
+        }
+
+        return new VBox(8, etiqueta, filaFotos);
     }
 }

@@ -140,6 +140,8 @@ public class SimuladorCarrera {
                         ResultadoCarrera rival = buscarRivalMasCercano(resultado, vuelta, fraccionVuelta, resultados);
                         if (rival != null) {
                             rival.marcarChoque(progreso);
+                            resultado.setRivalChoque(rival.getPiloto());
+                            rival.setRivalChoque(resultado.getPiloto());
                         }
                     }
                 }

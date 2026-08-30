@@ -103,6 +103,7 @@ public class PantallaBienvenida extends StackPane {
             return;
         }
         avanzando = true;
+        GestorSonido.reproducirMusicaDeFondo("musica de fondo.m4a");
         gestor.navegarA(new MenuPrincipal(gestor));
     }
 }

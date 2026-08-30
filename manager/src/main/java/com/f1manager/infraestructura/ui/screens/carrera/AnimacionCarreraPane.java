@@ -3,6 +3,7 @@ package com.f1manager.infraestructura.ui.screens.carrera;
 import com.f1manager.infraestructura.persistencia.DataStore;
 import com.f1manager.dominio.modelo.*;
 import com.f1manager.dominio.servicio.SimuladorCarrera;
+import com.f1manager.infraestructura.ui.util.FotosChoque;
 import com.f1manager.infraestructura.ui.util.PistaGenerador;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Insets;
@@ -12,6 +13,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
@@ -60,6 +63,12 @@ public class AnimacionCarreraPane extends BorderPane {
     private final Map<Piloto, Integer> siguienteIndicePit = new HashMap<>();
     // Panel de detalle en vivo: se despliega al hacer clic en un piloto de la tabla "EN VIVO".
     private final VBox panelDetallePiloto = new VBox(6);
+    // Fotos de choques ocurridos durante la carrera, pegadas al costado izquierdo, en el orden
+    // en que van sucediendo. Se les guarda una tarjeta a los pilotos ya mostrados para no
+    // duplicar la misma tarjeta en cada fotograma mientras siguen "chocados".
+    private final VBox columnaChoques = new VBox(12);
+    private final Set<Piloto> fotosChoqueMostradas = new HashSet<>();
+    private final SimuladorCarrera.ResultadoSimulacion simulacion;
     private Piloto pilotoSeleccionado;
     private AnimationTimer timer;
     private long ultimoFrameNs = -1;
@@ -73,6 +82,7 @@ public class AnimacionCarreraPane extends BorderPane {
         List<Piloto> pilotos = DataStore.getInstancia().getPilotos();
         SimuladorCarrera.ResultadoSimulacion simulacion = simulador.simular(circuito, climaElegido, pilotos,
                 p -> DataStore.getInstancia().getVehiculoPorEquipo(p.getEquipo()), pista::esCurvaEnFraccion);
+        this.simulacion = simulacion;
         this.resultados = simulacion.getResultados();
         this.climaReal = simulacion.getClimaReal();
         for (ResultadoCarrera r : resultados) {
@@ -106,6 +116,14 @@ public class AnimacionCarreraPane extends BorderPane {
         contenedorLienzo.getStyleClass().add("panel");
         contenedorLienzo.setPadding(new Insets(16));
         setCenter(contenedorLienzo);
+
+        ScrollPane scrollChoques = new ScrollPane(columnaChoques);
+        scrollChoques.setFitToWidth(true);
+        scrollChoques.getStyleClass().add("scroll-oscuro");
+        scrollChoques.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        scrollChoques.setPrefWidth(250);
+        scrollChoques.setPrefHeight(460);
+        setLeft(scrollChoques);
 
         Label tituloClasificacion = new Label("EN VIVO");
         tituloClasificacion.getStyleClass().add("texto-rojo");
@@ -207,6 +225,7 @@ public class AnimacionCarreraPane extends BorderPane {
             }
         }
         ordenActual.sort((a, b) -> Double.compare(vueltasAvanzadas.get(b), vueltasAvanzadas.get(a)));
+        mostrarNuevasFotosChoque(chocados);
 
         // Dibujar cada piloto como un punto de color sobre la pista (gris con X si chocó)
         for (Piloto p : ordenActual) {
@@ -313,6 +332,46 @@ public class AnimacionCarreraPane extends BorderPane {
         // Se reordenan los MISMOS objetos Label (nunca se destruyen ni se crean nuevos), para que
         // sus manejadores de clic sigan siendo válidos entre un fotograma y el siguiente.
         columnaClasificacionEnVivo.getChildren().setAll(enOrden);
+    }
+
+    /** Agrega una tarjeta con las 3 fotos del choque por cada piloto recién chocado (una sola vez por incidente). */
+    private void mostrarNuevasFotosChoque(Set<Piloto> chocados) {
+        for (Piloto p : chocados) {
+            if (fotosChoqueMostradas.contains(p)) {
+                continue;
+            }
+            ResultadoCarrera resultado = resultadoPorPiloto.get(p);
+            fotosChoqueMostradas.add(p);
+
+            String titulo;
+            if (resultado.esChoqueGrupal()) {
+                fotosChoqueMostradas.add(resultado.getRivalChoque());
+                titulo = "Choque entre " + p.getNombre() + " y " + resultado.getRivalChoque().getNombre();
+            } else {
+                titulo = "Choque de " + p.getNombre();
+            }
+
+            List<Image> fotos = FotosChoque.paraChoque(simulacion, resultado);
+            columnaChoques.getChildren().add(construirTarjetaChoque(titulo, fotos));
+        }
+    }
+
+    private VBox construirTarjetaChoque(String titulo, List<Image> fotos) {
+        Label etiqueta = new Label(titulo);
+        etiqueta.getStyleClass().add("texto-rojo");
+        etiqueta.setWrapText(true);
+        etiqueta.setStyle("-fx-font-size: 11px;");
+
+        VBox tarjeta = new VBox(6, etiqueta);
+        tarjeta.getStyleClass().add("panel");
+        tarjeta.setPadding(new Insets(10));
+        for (Image foto : fotos) {
+            ImageView vista = new ImageView(foto);
+            vista.setPreserveRatio(true);
+            vista.setFitWidth(220);
+            tarjeta.getChildren().add(vista);
+        }
+        return tarjeta;
     }
 
     private void mostrarMensajeSinSeleccion() {

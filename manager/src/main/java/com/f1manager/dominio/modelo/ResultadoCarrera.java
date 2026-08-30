@@ -47,6 +47,7 @@ public class ResultadoCarrera {
     private double velocidadMaximaAlcanzada;
     private boolean dnf;
     private double progresoChoque; // vueltas completadas al momento del choque (ej. 5.375), solo válido si dnf
+    private Piloto rivalChoque; // el otro piloto involucrado, si el choque fue entre dos (null si fue en solitario)
 
     public List<Double> getTiemposPorVuelta() {
         return tiemposPorVuelta;
@@ -76,6 +77,19 @@ public class ResultadoCarrera {
     public void marcarChoque(double progresoChoque) {
         this.dnf = true;
         this.progresoChoque = progresoChoque;
+    }
+
+    public Piloto getRivalChoque() {
+        return rivalChoque;
+    }
+
+    public void setRivalChoque(Piloto rivalChoque) {
+        this.rivalChoque = rivalChoque;
+    }
+
+    /** True si el choque involucró a otro piloto (ambos DNF en el mismo punto), no solo en solitario. */
+    public boolean esChoqueGrupal() {
+        return dnf && rivalChoque != null;
     }
 
     /** Cuántas vueltas completó realmente: todas si terminó, o las previas al choque si no. */
