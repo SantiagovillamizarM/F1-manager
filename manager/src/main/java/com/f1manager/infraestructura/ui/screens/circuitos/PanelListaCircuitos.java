@@ -123,6 +123,12 @@ public class PanelListaCircuitos extends HBox {
 
         VBox contenido = new VBox(14, titulo, subtitulo, lienzo, descripcion);
         contenido.setAlignment(Pos.TOP_LEFT);
-        panelDetalle.getChildren().setAll(contenido);
+
+        ScrollPane scrollDetalle = new ScrollPane(contenido);
+        scrollDetalle.setFitToWidth(true);
+        scrollDetalle.getStyleClass().add("scroll-oscuro");
+        scrollDetalle.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
+        panelDetalle.getChildren().setAll(scrollDetalle);
     }
 }

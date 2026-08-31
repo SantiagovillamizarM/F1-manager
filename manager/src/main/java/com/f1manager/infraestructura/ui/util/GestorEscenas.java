@@ -73,7 +73,12 @@ public final class GestorEscenas {
 
     /** Vuelve a la pantalla anterior del historial, si existe. */
     public void volver() {
-        if (historial.size() <= 1) {
+        // Se ignora mientras haya una transición en curso: si no, clics rápidos
+        // podían desapilar varias veces aunque solo la primera transición se
+        // llegara a mostrar, desincronizando el historial de lo que se ve en
+        // pantalla (y dejando "saltar" pantallas intermedias, como el menú
+        // principal, en un "volver" posterior).
+        if (animando || historial.size() <= 1) {
             return;
         }
         historial.pop();
@@ -82,6 +87,9 @@ public final class GestorEscenas {
     }
 
     private void cambiarCon(Region vista, boolean apilar) {
+        if (animando) {
+            return;
+        }
         if (apilar) {
             historial.push(vista);
         }
