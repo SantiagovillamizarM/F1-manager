@@ -5,11 +5,11 @@
 //Esta es la ruta que usa este .java
 package com.f1manager.dominio.modelo;
 public enum TipoNeumatico {
-    BLANDO("Blando", 0.985, false, 1.4),
-    MEDIO("Medio", 1.000, false, 1.0),
-    DURO("Duro", 1.015, false, 0.6),
-    INTERMEDIO("Intermedio", 1.000, true, 0.9),
-    LLUVIA("Lluvia", 1.005, true, 0.8);
+    BLANDO("Blando", 0.985, false, 4.6),
+    MEDIO("Medio", 1.000, false, 3.3),
+    DURO("Duro", 1.015, false, 2.0),
+    INTERMEDIO("Intermedio", 1.000, true, 3.0),
+    LLUVIA("Lluvia", 1.005, true, 2.6);
 
     private final String etiqueta;
     private final double factorRitmo;

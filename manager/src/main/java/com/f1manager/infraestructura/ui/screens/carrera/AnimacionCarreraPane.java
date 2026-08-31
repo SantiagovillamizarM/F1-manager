@@ -41,7 +41,7 @@ public class AnimacionCarreraPane extends BorderPane {
             Color.web("#40c4ff"), Color.web("#ff6e6e"), Color.web("#c0ca33"), Color.web("#90a4ae")
     };
 
-    private final Canvas lienzo = new Canvas(760, 460);
+    private final Canvas lienzo = new Canvas(640, 380);
     private final VBox columnaClasificacionEnVivo = new VBox(8);
     private final Circuito circuito;
     private final List<ResultadoCarrera> resultados;
@@ -99,54 +99,68 @@ public class AnimacionCarreraPane extends BorderPane {
 
             Label etiqueta = new Label();
             etiqueta.setWrapText(true);
+            etiqueta.setMinWidth(0);
+            etiqueta.setPrefWidth(250);
+            etiqueta.setMaxWidth(250);
             etiqueta.setCursor(javafx.scene.Cursor.HAND);
             etiqueta.setOnMouseClicked(e -> pilotoSeleccionado = p);
             etiquetasEnVivo.put(p, etiqueta);
         }
 
-        setPadding(new Insets(10));
+        setPadding(new Insets(6));
 
         Label titulo = new Label("Carrera en curso — " + circuito.getNombre() + "  ·  Clima: " + climaReal.getEtiqueta());
         titulo.getStyleClass().add("titulo-seccion");
         VBox cajaTitulo = new VBox(titulo);
-        cajaTitulo.setPadding(new Insets(0, 0, 16, 0));
+        cajaTitulo.setPadding(new Insets(0, 0, 8, 0));
         setTop(cajaTitulo);
 
         StackPane contenedorLienzo = new StackPane(lienzo);
         contenedorLienzo.getStyleClass().add("panel");
-        contenedorLienzo.setPadding(new Insets(16));
+        contenedorLienzo.setPadding(new Insets(12));
         setCenter(contenedorLienzo);
 
         ScrollPane scrollChoques = new ScrollPane(columnaChoques);
         scrollChoques.setFitToWidth(true);
+        scrollChoques.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollChoques.getStyleClass().add("scroll-oscuro");
         scrollChoques.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
-        scrollChoques.setPrefWidth(250);
-        scrollChoques.setPrefHeight(460);
+        scrollChoques.setPrefWidth(220);
+        scrollChoques.setPrefHeight(404);
         setLeft(scrollChoques);
 
         Label tituloClasificacion = new Label("EN VIVO");
         tituloClasificacion.getStyleClass().add("texto-rojo");
-        panelDetallePiloto.setMinHeight(90);
+        panelDetallePiloto.setMinHeight(70);
         panelDetallePiloto.setStyle("-fx-border-color: #232a3d; -fx-border-width: 1 0 0 0;");
-        panelDetallePiloto.setPadding(new Insets(10, 0, 0, 0));
+        panelDetallePiloto.setPadding(new Insets(8, 0, 0, 0));
         mostrarMensajeSinSeleccion();
 
         // La lista va en su propio scroll con altura acotada, para que el panel de detalle de
         // abajo SIEMPRE tenga su espacio reservado y visible (si no, con filas largas la lista
         // se comía todo el alto del panel y el detalle quedaba empujado fuera de la vista).
+        columnaClasificacionEnVivo.setMaxWidth(250);
         ScrollPane scrollClasificacion = new ScrollPane(columnaClasificacionEnVivo);
         scrollClasificacion.setFitToWidth(true);
+        scrollClasificacion.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollClasificacion.getStyleClass().add("scroll-oscuro");
         scrollClasificacion.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        // Sin una altura acotada explícita, un ScrollPane reporta la altura COMPLETA de su
+        // contenido como su tamaño preferido (no recorta nada), así que el "scroll propio" de la
+        // lista nunca llegaba a activarse: esa altura completa se sumaba a panelDerecho y de ahí
+        // se propagaba hasta forzar el scroll de toda la pantalla. Con altura fija, ahora sí es
+        // este ScrollPane el que recorta y hace scroll internamente cuando la lista no cabe.
+        scrollClasificacion.setPrefHeight(240);
+        scrollClasificacion.setMinHeight(100);
         VBox.setVgrow(scrollClasificacion, Priority.ALWAYS);
 
-        VBox panelDerecho = new VBox(12, tituloClasificacion, scrollClasificacion, panelDetallePiloto);
+        VBox panelDerecho = new VBox(10, tituloClasificacion, scrollClasificacion, panelDetallePiloto);
         panelDerecho.getStyleClass().add("panel");
-        panelDerecho.setPadding(new Insets(18));
+        panelDerecho.setPadding(new Insets(14));
         panelDerecho.setPrefWidth(300);
+        panelDerecho.setMaxWidth(300);
         setRight(panelDerecho);
-        BorderPane.setMargin(panelDerecho, new Insets(0, 0, 0, 16));
+        BorderPane.setMargin(panelDerecho, new Insets(0, 0, 0, 12));
 
         setBottom(construirControlVelocidad());
 
@@ -156,18 +170,21 @@ public class AnimacionCarreraPane extends BorderPane {
     private HBox construirControlVelocidad() {
         Label titulo = new Label("VELOCIDAD DE SIMULACIÓN");
         titulo.getStyleClass().add("texto-rojo");
+        titulo.setStyle("-fx-font-size: 11px;");
 
-        sliderVelocidadSimulacion.setPrefWidth(240);
-        sliderVelocidadSimulacion.setShowTickMarks(true);
+        sliderVelocidadSimulacion.setPrefWidth(180);
+        sliderVelocidadSimulacion.setShowTickMarks(false);
         sliderVelocidadSimulacion.setMajorTickUnit(0.25);
         sliderVelocidadSimulacion.valueProperty().addListener((obs, anterior, nuevo) -> actualizarEtiquetaVelocidad());
         actualizarEtiquetaVelocidad();
 
-        HBox caja = new HBox(14, titulo, sliderVelocidadSimulacion, etiquetaVelocidadSimulacion);
+        HBox caja = new HBox(12, titulo, sliderVelocidadSimulacion, etiquetaVelocidadSimulacion);
         caja.getStyleClass().add("panel");
         caja.setAlignment(Pos.CENTER);
-        caja.setPadding(new Insets(14));
-        BorderPane.setMargin(caja, new Insets(16, 0, 12, 0));
+        caja.setPadding(new Insets(6, 14, 6, 14));
+        caja.setMaxWidth(420);
+        BorderPane.setMargin(caja, new Insets(8, 0, 4, 0));
+        BorderPane.setAlignment(caja, Pos.CENTER);
         return caja;
     }
 

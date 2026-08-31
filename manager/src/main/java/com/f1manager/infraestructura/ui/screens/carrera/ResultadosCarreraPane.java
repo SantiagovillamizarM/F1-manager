@@ -193,7 +193,13 @@ public class ResultadosCarreraPane extends VBox {
         if (r.isDnf()) {
             contenido.getChildren().add(construirSeccionFotosChoque(r));
         }
-        panelDetalle.getChildren().setAll(contenido);
+
+        ScrollPane scrollDetalle = new ScrollPane(contenido);
+        scrollDetalle.setFitToWidth(true);
+        scrollDetalle.getStyleClass().add("scroll-oscuro");
+        scrollDetalle.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
+        panelDetalle.getChildren().setAll(scrollDetalle);
     }
 
     /** Las 3 fotos del choque de este piloto, con el título según si fue en solitario o contra otro. */
