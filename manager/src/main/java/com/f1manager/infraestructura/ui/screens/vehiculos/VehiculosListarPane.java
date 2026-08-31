@@ -8,6 +8,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
@@ -56,7 +57,10 @@ public class VehiculosListarPane extends HBox {
     }
 
     private VBox construirFila(Monoplaza m) {
-       StackPane icono = IconFactory.contenedor(IconFactory.monoplaza(IconFactory.BLANCO), 70, 40);
+        StackPane icono = new StackPane(IconFactory.monoplazaDeEquipo(m.getEquipo(), 60));
+        icono.setPrefSize(70, 40);
+        icono.setMinSize(70, 40);
+        icono.setMaxSize(70, 40);
 
         Label nombre = new Label(m.getModelo());
         nombre.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #f5f6fa;");
@@ -93,7 +97,8 @@ public class VehiculosListarPane extends HBox {
     }
 
     private void mostrarDetalle(Monoplaza m) {
-        StackPane icono = IconFactory.contenedor(IconFactory.monoplaza(IconFactory.BLANCO), 90);
+        StackPane imagen = new StackPane(IconFactory.monoplazaDeEquipo(m.getEquipo(), 380));
+        imagen.setAlignment(Pos.CENTER);
 
         Label titulo = new Label(m.getModelo());
         titulo.getStyleClass().add("titulo-seccion");
@@ -101,8 +106,8 @@ public class VehiculosListarPane extends HBox {
         Label equipo = new Label(m.getEquipo());
         equipo.getStyleClass().add("texto-rojo");
 
-        HBox encabezado = new HBox(20, icono, new VBox(6, titulo, equipo));
-        encabezado.setAlignment(Pos.CENTER_LEFT);
+        VBox encabezado = new VBox(10, imagen, titulo, equipo);
+        encabezado.setAlignment(Pos.CENTER);
 
         Label motor = new Label("Motor: " + m.getMotor());
         Label velocidad = new Label(String.format("Velocidad máxima: %.0f km/h", m.getVelocidadMaxKmh()));
@@ -123,7 +128,8 @@ public class VehiculosListarPane extends HBox {
         pilotos.getStyleClass().add("texto-secundario");
         pilotos.setWrapText(true);
 
-        VBox contenido = new VBox(12, encabezado, motor, velocidad, aceleracion, carga, modo, neumatico, presion, pilotos);
+        VBox contenido = new VBox(16, encabezado, new Separator(),
+                motor, velocidad, aceleracion, carga, modo, neumatico, presion, pilotos);
         panelDetalle.getChildren().setAll(contenido);
     }
 }

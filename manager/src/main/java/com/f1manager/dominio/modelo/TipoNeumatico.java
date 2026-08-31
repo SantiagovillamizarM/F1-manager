@@ -1,6 +1,8 @@
 //Define los compuestos de neumático usados en la F1
 //(Blando, Medio, Duro, Intermedio, Lluvia), cuánto afecta cada uno al ritmo
 //y a qué ritmo se desgasta por vuelta en condiciones normales.
+
+//Esta es la ruta que usa este .java
 package com.f1manager.dominio.modelo;
 public enum TipoNeumatico {
     BLANDO("Blando", 0.985, false, 1.4),
@@ -14,6 +16,8 @@ public enum TipoNeumatico {
     private final boolean paraLluvia;
     private final double desgastePorVuelta;
 
+    //Constructor
+    //Inicializa y asigna los datos iniciales a un objeto cuando es creado.
     TipoNeumatico(String etiqueta, double factorRitmo, boolean paraLluvia, double desgastePorVuelta) {
         this.etiqueta = etiqueta;
         this.factorRitmo = factorRitmo;

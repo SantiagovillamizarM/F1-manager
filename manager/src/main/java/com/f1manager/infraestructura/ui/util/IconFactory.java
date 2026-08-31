@@ -29,6 +29,16 @@ public final class IconFactory {
             "alpine", "scuderia alpine.png"
     );
 
+    /** Asocia una palabra clave del nombre del equipo (en minúsculas) con la foto de su monoplaza en /imagenes/monoplazas. */
+    private static final Map<String, String> ARCHIVOS_MONOPLAZA_EQUIPO = Map.of(
+            "ferrari", "ferrari f1.jpg",
+            "mercedes", "mercedes f1.jpg",
+            "red bull", "redbull f1.jpg",
+            "mclaren", "mclaren f1.jpg",
+            "aston martin", "aston martin f1.jpg",
+            "alpine", "F1 Alpine.jpg"
+    );
+
     private IconFactory() {
     }
 
@@ -162,6 +172,11 @@ public final class IconFactory {
         return new Group(l1, l2);
     }
 
+    /** Lápiz (editar), cargado desde /imagenes. */
+    public static Group lapiz(Color color) {
+        return logoLocal("lapiz icon.png");
+    }
+
     /** Silueta simplificada de un trazado de circuito (estilo Nürburgring), usada como ícono de "Listar circuitos". */
     /** Silueta del circuito de Nürburgring, cargada desde una imagen por URL. */
     public static Group pistaSilueta(Color color) {
@@ -273,12 +288,36 @@ public final class IconFactory {
         return new Group(vista);
     }
 
-    /** Ícono de monoplaza estilizado (vista superior simplificada). */
+    /** Ícono de monoplaza estilizado (vista superior simplificada), cargado desde /imagenes. */
     public static Group monoplaza(Color color) {
-    Image imagen = new Image("https://i.ibb.co/TMSc4M3t/upscalemedia-transformed-20.png", true);
+        Image imagen = GestorImagenes.cargar("monoplaza.png");
         ImageView vista = new ImageView(imagen);
         vista.setPreserveRatio(true);
         vista.setFitWidth(50);
+        return new Group(vista);
+    }
+
+    /**
+     * Foto real del monoplaza según su equipo (ej. "Scuderia Ferrari" -> monoplaza de Ferrari),
+     * cargada desde /imagenes/monoplazas. Si el equipo no coincide con ninguna escudería conocida
+     * (por ejemplo, uno registrado manualmente por el usuario), se usa el ícono genérico de
+     * monoplaza como respaldo.
+     */
+    public static Group monoplazaDeEquipo(String nombreEquipo, double ancho) {
+        String normalizado = nombreEquipo == null ? "" : nombreEquipo.toLowerCase();
+        Image imagen = null;
+        for (var entrada : ARCHIVOS_MONOPLAZA_EQUIPO.entrySet()) {
+            if (normalizado.contains(entrada.getKey())) {
+                imagen = GestorImagenes.cargar("monoplazas/" + entrada.getValue());
+                break;
+            }
+        }
+        if (imagen == null) {
+            imagen = GestorImagenes.cargar("monoplaza.png");
+        }
+        ImageView vista = new ImageView(imagen);
+        vista.setPreserveRatio(true);
+        vista.setFitWidth(ancho);
         return new Group(vista);
     }
 

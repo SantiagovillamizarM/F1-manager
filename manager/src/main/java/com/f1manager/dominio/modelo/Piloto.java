@@ -1,5 +1,7 @@
 //Guarda la información de un piloto
 //(nombre, equipo, rol, experiencia, habilidades específicas por curva/adelantamiento/recta/clima).
+
+//Esta es la ruta que usa este .java
 package com.f1manager.dominio.modelo;
 
 import java.util.Objects;
@@ -19,6 +21,8 @@ public class Piloto {
     private int habilidadExtremo; // 1 a 100
     private String imagenUrl; // URL lista para cargar en un Image (foto subida o avatar predeterminado); null = sin foto
 
+    //Constructor
+    //Inicializa y asigna los datos iniciales a un objeto cuando es creado.
     public Piloto(int id, String nombre, String equipo, RolPiloto rol, int experienciaAnios,
                   int habilidadCurva, int habilidadAdelantamiento, int habilidadRecta,
                   int habilidadLluvia, int habilidadSeco, int habilidadExtremo) {

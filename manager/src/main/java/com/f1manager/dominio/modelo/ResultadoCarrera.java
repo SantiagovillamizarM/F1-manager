@@ -1,5 +1,7 @@
 //Guarda el resultado de un piloto al terminar una carrera 
 //(posición, tiempo total, tiempos por vuelta, velocidad máxima alcanzada).
+
+//Esta es la ruta que usa este .java
 package com.f1manager.dominio.modelo;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,8 @@ public class ResultadoCarrera {
     private final Monoplaza monoplaza;
     private final double tiempoSegundos;
 
+    //Constructor
+    //Inicializa y asigna los datos iniciales a un objeto cuando es creado.
     public ResultadoCarrera(Piloto piloto, Monoplaza monoplaza, double tiempoSegundos) {
         this.piloto = piloto;
         this.monoplaza = monoplaza;

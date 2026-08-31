@@ -35,8 +35,11 @@ public class ModuloPilotos extends ModuloGestionBase {
         TarjetaOpcion eliminar = new TarjetaOpcion(
                 IconFactory.contenedor(IconFactory.equis(IconFactory.BLANCO), 60),
                 "ELIMINAR\nPILOTO", () -> irA(2), false);
+        TarjetaOpcion editar = new TarjetaOpcion(
+                IconFactory.contenedor(IconFactory.lapiz(IconFactory.BLANCO), 60),
+                "EDITAR\nPILOTO", () -> irA(3), false);
 
-        HBox fila = new HBox(24, listar, registrar, eliminar);
+        HBox fila = new HBox(24, listar, registrar, eliminar, editar);
         fila.setAlignment(Pos.CENTER);
         fila.setPadding(new Insets(40, 0, 0, 0));
         mostrarEnCentro(fila);
@@ -46,7 +49,8 @@ public class ModuloPilotos extends ModuloGestionBase {
         return List.of(
                 new BarraMiniIconos.Item(IconFactory.logoGestionPilotos(), "Listar pilotos", () -> irA(0)),
                 new BarraMiniIconos.Item(IconFactory.documento(IconFactory.BLANCO), "Registrar piloto", () -> irA(1)),
-                new BarraMiniIconos.Item(IconFactory.equis(IconFactory.BLANCO), "Eliminar piloto", () -> irA(2))
+                new BarraMiniIconos.Item(IconFactory.equis(IconFactory.BLANCO), "Eliminar piloto", () -> irA(2)),
+                new BarraMiniIconos.Item(IconFactory.lapiz(IconFactory.BLANCO), "Editar piloto", () -> irA(3))
         );
     }
 
@@ -56,6 +60,7 @@ public class ModuloPilotos extends ModuloGestionBase {
             case 0 -> mostrarEnCentro(new PilotosListarPane());
             case 1 -> mostrarEnCentro(new PilotosRegistrarPane(this::irAListar));
             case 2 -> mostrarEnCentro(new PilotosEliminarPane());
+            case 3 -> mostrarEnCentro(new PilotosEditarPane());
         }
     }
 

@@ -52,6 +52,24 @@ final class CircuitoRepositorioMySQL {
         }
     }
 
+    /** Persiste los datos actuales (ya modificados) de un circuito existente. */
+    static void actualizar(Circuito circuito) {
+        String sql = "UPDATE circuitos SET nombre = ?, pais = ?, longitud_km = ?, vueltas = ?, "
+                + "descripcion = ? WHERE id = ?";
+        try (Connection conexion = ConexionMySQL.obtener();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, circuito.getNombre());
+            stmt.setString(2, circuito.getPais());
+            stmt.setDouble(3, circuito.getLongitudKm());
+            stmt.setInt(4, circuito.getVueltas());
+            stmt.setString(5, circuito.getDescripcion());
+            stmt.setInt(6, circuito.getId());
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            throw new RuntimeException("No se pudo actualizar el circuito en MySQL: " + ex.getMessage(), ex);
+        }
+    }
+
     static void eliminar(int id) {
         String sql = "DELETE FROM circuitos WHERE id = ?";
         try (Connection conexion = ConexionMySQL.obtener();

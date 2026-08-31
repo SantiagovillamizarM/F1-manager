@@ -72,6 +72,26 @@ public final class DataStore {
                 .collect(Collectors.toList());
     }
 
+    public void editarCircuito(String idTexto, String nombre, String pais, String longitudTexto,
+                                String vueltasTexto, String descripcion) throws ValidacionException {
+        int id = parsearEnteroPositivo(idTexto, "Ingrese un ID numérico válido.");
+        Circuito circuito = circuitos.stream().filter(c -> c.getId() == id).findFirst()
+                .orElseThrow(() -> new ValidacionException("No existe ningún circuito con el ID " + id + "."));
+        if (esVacio(nombre) || esVacio(pais)) {
+            throw new ValidacionException("El nombre y el país del circuito son obligatorios.");
+        }
+        double longitud = parsearDoublePositivo(longitudTexto, "La longitud debe ser un número mayor que 0.");
+        int vueltas = parsearEnteroPositivo(vueltasTexto, "El número de vueltas debe ser un entero mayor que 0.");
+        String desc = esVacio(descripcion) ? "Sin descripción disponible." : descripcion.trim();
+
+        circuito.setNombre(nombre.trim());
+        circuito.setPais(pais.trim());
+        circuito.setLongitudKm(longitud);
+        circuito.setVueltas(vueltas);
+        circuito.setDescripcion(desc);
+        CircuitoRepositorioMySQL.actualizar(circuito);
+    }
+
     public void eliminarCircuito(String idTexto) throws ValidacionException {
         int id = parsearEnteroPositivo(idTexto, "Ingrese un ID numérico válido.");
         Circuito encontrado = circuitos.stream().filter(c -> c.getId() == id).findFirst()
@@ -126,6 +146,48 @@ public final class DataStore {
         piloto.setImagenUrl(imagenUrl);
         pilotos.add(piloto);
         return piloto;
+    }
+
+    public void editarPiloto(String idTexto, String nombre, String equipo, RolPiloto rol, String experienciaTexto,
+                              String curvaTexto, String adelantamientoTexto, String rectaTexto,
+                              String lluviaTexto, String secoTexto, String extremoTexto,
+                              String imagenUrl) throws ValidacionException {
+        int id = parsearEnteroPositivo(idTexto, "Ingrese un ID numérico válido.");
+        Piloto piloto = pilotos.stream().filter(p -> p.getId() == id).findFirst()
+                .orElseThrow(() -> new ValidacionException("No existe ningún piloto con el ID " + id + "."));
+        if (esVacio(nombre)) {
+            throw new ValidacionException("El nombre del piloto es obligatorio.");
+        }
+        if (esVacio(equipo)) {
+            throw new ValidacionException("Debe seleccionar un equipo para el piloto.");
+        }
+        boolean equipoExiste = equipos.stream().anyMatch(e -> e.getNombre().equalsIgnoreCase(equipo));
+        if (!equipoExiste) {
+            throw new ValidacionException("El equipo seleccionado no existe.");
+        }
+        if (rol == null) {
+            throw new ValidacionException("Debe seleccionar un rol para el piloto.");
+        }
+        int experiencia = parsearEnteroNoNegativo(experienciaTexto, "Los años de experiencia deben ser un entero mayor o igual a 0.");
+        int curva = parsearHabilidad(curvaTexto, "curva");
+        int adelantamiento = parsearHabilidad(adelantamientoTexto, "adelantamiento");
+        int recta = parsearHabilidad(rectaTexto, "recta");
+        int lluvia = parsearHabilidad(lluviaTexto, "lluvia");
+        int seco = parsearHabilidad(secoTexto, "seco");
+        int extremo = parsearHabilidad(extremoTexto, "clima extremo");
+
+        piloto.setNombre(nombre.trim());
+        piloto.setEquipo(equipo);
+        piloto.setRol(rol);
+        piloto.setExperienciaAnios(experiencia);
+        piloto.setHabilidadCurva(curva);
+        piloto.setHabilidadAdelantamiento(adelantamiento);
+        piloto.setHabilidadRecta(recta);
+        piloto.setHabilidadLluvia(lluvia);
+        piloto.setHabilidadSeco(seco);
+        piloto.setHabilidadExtremo(extremo);
+        piloto.setImagenUrl(imagenUrl);
+        PilotoRepositorioMySQL.actualizar(piloto);
     }
 
     public void eliminarPiloto(String idTexto) throws ValidacionException {

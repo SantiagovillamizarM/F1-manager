@@ -36,9 +36,11 @@ com\f1manager\dominio\modelo\Equipo.class
 com\f1manager\dominio\modelo\Monoplaza.class
 com\f1manager\infraestructura\ui\util\FotosChoque.class
 com\f1manager\infraestructura\ui\components\FondoAnimado$Particula.class
+com\f1manager\infraestructura\ui\screens\pilotos\PilotosEditarPane.class
 com\f1manager\infraestructura\ui\util\IconFactory.class
 com\f1manager\infraestructura\ui\components\BarraMiniIconos.class
 com\f1manager\infraestructura\ui\util\GestorSonido.class
+com\f1manager\infraestructura\ui\screens\circuitos\CircuitosEditarPane.class
 com\f1manager\infraestructura\ui\screens\circuitos\CircuitosEliminarPane.class
 com\f1manager\infraestructura\ui\components\CampoBusqueda.class
 com\f1manager\dominio\excepcion\ValidacionException.class

@@ -33,6 +33,7 @@ C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraes
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\carrera\ResultadosCarreraPane.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\carrera\SeleccionCarreraPane.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\circuitos\CircuitosBuscarPane.java
+C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\circuitos\CircuitosEditarPane.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\circuitos\CircuitosEliminarPane.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\circuitos\CircuitosListarPane.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\circuitos\CircuitosRegistrarPane.java
@@ -44,6 +45,7 @@ C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraes
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\equipos\ModuloEquipos.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\pilotos\ModuloPilotos.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\pilotos\PanelListaPilotos.java
+C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\pilotos\PilotosEditarPane.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\pilotos\PilotosEliminarPane.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\pilotos\PilotosListarPane.java
 C:\Users\Santiago\Desktop\f1_manager\manager\src\main\java\com\f1manager\infraestructura\ui\screens\pilotos\PilotosRegistrarPane.java

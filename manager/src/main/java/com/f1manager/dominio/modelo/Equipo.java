@@ -1,5 +1,7 @@
 //Guarda la información de un equipo/escudería 
 //(nombre, país, motor).
+
+//Esta es la ruta que usa este .java
 package com.f1manager.dominio.modelo;
 
 import java.util.Objects;
@@ -10,6 +12,8 @@ public class Equipo {
     private String pais;
     private String motor;
 
+    //Constructor
+    //Inicializa y asigna los datos iniciales a un objeto cuando es creado.
     public Equipo(String nombre, String pais, String motor) {
         this.nombre = nombre;
         this.pais = pais;

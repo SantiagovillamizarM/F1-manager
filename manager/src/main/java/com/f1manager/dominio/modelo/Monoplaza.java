@@ -1,5 +1,7 @@
 //Guarda la información de un vehículo 
 //(modelo, equipo, motor, velocidad, aceleración, y su configuración actual).
+
+//Esta es la ruta que usa este .java
 package com.f1manager.dominio.modelo;
 
 import java.util.Objects;
@@ -23,6 +25,8 @@ public class Monoplaza {
     private TipoNeumatico tipoNeumatico;
     private double presionAire; // PSI
 
+    //Constructor
+    //Inicializa y asigna los datos iniciales a un objeto cuando es creado.
     public Monoplaza(int id, String modelo, String equipo, String motor,
                       double velocidadMaxKmh, double aceleracion0a100) {
         this.id = id;

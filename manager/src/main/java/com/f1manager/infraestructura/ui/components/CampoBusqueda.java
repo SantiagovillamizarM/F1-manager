@@ -4,6 +4,7 @@ import com.f1manager.infraestructura.ui.util.IconFactory;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 
 /**
@@ -19,11 +20,12 @@ public class CampoBusqueda extends HBox {
         setSpacing(12);
         setAlignment(Pos.CENTER_LEFT);
 
-        StackPane icono = IconFactory.contenedor(IconFactory.lupa(IconFactory.BLANCO), 36);
+        StackPane icono = IconFactory.contenedor(IconFactory.lupa(IconFactory.BLANCO), 46);
 
-        campoTexto.getStyleClass().add("campo-texto");
+        campoTexto.getStyleClass().addAll("campo-texto", "campo-busqueda-texto");
         campoTexto.setPromptText(promptText);
-        campoTexto.setPrefWidth(360);
+        campoTexto.setPrefHeight(46);
+        HBox.setHgrow(campoTexto, Priority.ALWAYS);
 
         getChildren().addAll(icono, campoTexto);
     }

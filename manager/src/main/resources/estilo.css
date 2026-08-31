@@ -277,6 +277,22 @@
     -fx-effect: dropshadow(gaussian, rgba(225,6,0,0.35), 8, 0.1, 0, 0);
 }
 
+.campo-busqueda-texto {
+    -fx-font-size: 15px;
+    -fx-padding: 12 16 12 16;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+
+.campo-area .content {
+    -fx-background-color: -color-panel-solid;
+    -fx-background-radius: 6;
+}
+
+.campo-area .content .text {
+    -fx-fill: -color-text;
+}
+
 .combo-oscuro {
     -fx-background-color: -color-panel-solid;
     -fx-border-color: -color-border;

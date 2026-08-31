@@ -90,6 +90,31 @@ final class PilotoRepositorioMySQL {
         }
     }
 
+    /** Persiste los datos actuales (ya modificados) de un piloto existente. */
+    static void actualizar(Piloto piloto) {
+        String sql = "UPDATE pilotos SET nombre = ?, equipo = ?, rol = ?, experiencia_anios = ?, "
+                + "habilidad_curva = ?, habilidad_adelantamiento = ?, habilidad_recta = ?, "
+                + "habilidad_lluvia = ?, habilidad_seco = ?, habilidad_extremo = ?, imagen_url = ? WHERE id = ?";
+        try (Connection conexion = ConexionMySQL.obtener();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+            stmt.setString(1, piloto.getNombre());
+            stmt.setString(2, piloto.getEquipo());
+            stmt.setString(3, piloto.getRol().name());
+            stmt.setInt(4, piloto.getExperienciaAnios());
+            stmt.setInt(5, piloto.getHabilidadCurva());
+            stmt.setInt(6, piloto.getHabilidadAdelantamiento());
+            stmt.setInt(7, piloto.getHabilidadRecta());
+            stmt.setInt(8, piloto.getHabilidadLluvia());
+            stmt.setInt(9, piloto.getHabilidadSeco());
+            stmt.setInt(10, piloto.getHabilidadExtremo());
+            stmt.setString(11, piloto.getImagenUrl());
+            stmt.setInt(12, piloto.getId());
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            throw new RuntimeException("No se pudo actualizar el piloto en MySQL: " + ex.getMessage(), ex);
+        }
+    }
+
     static void eliminar(int id) {
         String sql = "DELETE FROM pilotos WHERE id = ?";
         try (Connection conexion = ConexionMySQL.obtener();

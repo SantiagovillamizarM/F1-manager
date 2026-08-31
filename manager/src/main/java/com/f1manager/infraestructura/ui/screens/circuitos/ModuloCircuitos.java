@@ -42,8 +42,11 @@ public class ModuloCircuitos extends ModuloGestionBase {
         TarjetaOpcion eliminar = new TarjetaOpcion(
                 IconFactory.contenedor(IconFactory.equis(IconFactory.BLANCO), 60),
                 "ELIMINAR\nCIRCUITO", () -> irA(3), false);
+        TarjetaOpcion editar = new TarjetaOpcion(
+                IconFactory.contenedor(IconFactory.lapiz(IconFactory.BLANCO), 60),
+                "EDITAR\nCIRCUITO", () -> irA(4), false);
 
-        HBox fila = new HBox(24, listar, registrar, buscar, eliminar);
+        HBox fila = new HBox(24, listar, registrar, buscar, eliminar, editar);
         fila.setAlignment(Pos.CENTER);
         fila.setPadding(new Insets(40, 0, 0, 0));
 
@@ -55,7 +58,8 @@ public class ModuloCircuitos extends ModuloGestionBase {
                 new BarraMiniIconos.Item(IconFactory.logoGestionCircuitos(), "Listar circuitos", () -> irA(0)),
                 new BarraMiniIconos.Item(IconFactory.documento(IconFactory.BLANCO), "Registrar circuito", () -> irA(1)),
                 new BarraMiniIconos.Item(IconFactory.lupa(IconFactory.BLANCO), "Buscar circuito", () -> irA(2)),
-                new BarraMiniIconos.Item(IconFactory.equis(IconFactory.BLANCO), "Eliminar circuito", () -> irA(3))
+                new BarraMiniIconos.Item(IconFactory.equis(IconFactory.BLANCO), "Eliminar circuito", () -> irA(3)),
+                new BarraMiniIconos.Item(IconFactory.lapiz(IconFactory.BLANCO), "Editar circuito", () -> irA(4))
         );
     }
 
@@ -66,6 +70,7 @@ public class ModuloCircuitos extends ModuloGestionBase {
             case 1 -> mostrarEnCentro(new CircuitosRegistrarPane(this::irAListar));
             case 2 -> mostrarEnCentro(new CircuitosBuscarPane());
             case 3 -> mostrarEnCentro(new CircuitosEliminarPane());
+            case 4 -> mostrarEnCentro(new CircuitosEditarPane());
         }
     }
 

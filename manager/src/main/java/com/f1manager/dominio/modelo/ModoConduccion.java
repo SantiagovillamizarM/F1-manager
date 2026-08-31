@@ -1,5 +1,7 @@
 //Define los tres modos de conducción
 //(Normal, Agresivo, Ahorro) y cuánto afecta cada uno al ritmo, al riesgo y al desgaste de neumáticos.
+
+//Esta es la ruta que usa este .java
 package com.f1manager.dominio.modelo;
 public enum ModoConduccion {
     NORMAL("Normal", 1.000, 1.00, 1.00),
@@ -11,6 +13,8 @@ public enum ModoConduccion {
     private final double factorVariabilidad;
     private final double factorDesgasteNeumatico;
 
+    //Constructor
+    //Inicializa y asigna los datos iniciales a un objeto cuando es creado.
     ModoConduccion(String etiqueta, double factorRitmo, double factorVariabilidad, double factorDesgasteNeumatico) {
         this.etiqueta = etiqueta;
         this.factorRitmo = factorRitmo;

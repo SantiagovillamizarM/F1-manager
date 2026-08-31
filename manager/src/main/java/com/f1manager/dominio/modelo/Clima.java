@@ -1,5 +1,7 @@
 //Define las condiciones climáticas posibles 
 //(Seco, Lluvioso, Extremo, Aleatorio) y cuánto afectan a la carrera.
+
+//Esta es la ruta que usa este .java
 package com.f1manager.dominio.modelo;
 
 import java.util.Random;
@@ -13,6 +15,8 @@ public enum Clima {
     private final double factorTiempo;
     private final double factorVariabilidad;
 
+    //Constructor
+    //Inicializa y asigna los datos iniciales a un objeto cuando es creado.
     Clima(String etiqueta, double factorTiempo, double factorVariabilidad) {
         this.etiqueta = etiqueta;
         this.factorTiempo = factorTiempo;
