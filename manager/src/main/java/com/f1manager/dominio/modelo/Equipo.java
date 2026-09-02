@@ -11,6 +11,7 @@ public class Equipo {
     private String nombre;
     private String pais;
     private String motor;
+    private String imagenUrl; // URL lista para cargar en un Image (logo subido); null = sin imagen propia
 
     //Constructor
     //Inicializa y asigna los datos iniciales a un objeto cuando es creado.
@@ -42,6 +43,14 @@ public class Equipo {
 
     public void setMotor(String motor) {
         this.motor = motor;
+    }
+
+    public String getImagenUrl() {
+        return imagenUrl;
+    }
+
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
     }
 
     @Override

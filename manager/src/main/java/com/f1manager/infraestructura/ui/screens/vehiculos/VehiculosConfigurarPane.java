@@ -6,6 +6,7 @@ import com.f1manager.dominio.modelo.CargaAerodinamica;
 import com.f1manager.dominio.modelo.ModoConduccion;
 import com.f1manager.dominio.modelo.Monoplaza;
 import com.f1manager.dominio.modelo.TipoNeumatico;
+import com.f1manager.infraestructura.ui.util.GestorSonido;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -157,10 +158,12 @@ public class VehiculosConfigurarPane extends VBox {
             mensaje.getStyleClass().removeAll("error-label");
             mensaje.getStyleClass().add("texto-rojo");
             mensaje.setText("Configuración guardada correctamente para " + comboVehiculo.getValue().getModelo() + ".");
+            GestorSonido.reproducir("Confirmado sound.mp3");
         } catch (ValidacionException ex) {
             mensaje.getStyleClass().removeAll("texto-rojo");
             mensaje.getStyleClass().add("error-label");
             mensaje.setText(ex.getMessage());
+            GestorSonido.reproducir("Error sound.mp3");
         }
     }
 }

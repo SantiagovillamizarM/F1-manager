@@ -6,6 +6,7 @@ import com.f1manager.dominio.modelo.Piloto;
 import com.f1manager.dominio.modelo.RolPiloto;
 import com.f1manager.infraestructura.ui.components.CampoBusqueda;
 import com.f1manager.infraestructura.ui.util.GestorImagenes;
+import com.f1manager.infraestructura.ui.util.GestorSonido;
 import com.f1manager.infraestructura.ui.util.IconFactory;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -313,11 +314,13 @@ public class PilotosEditarPane extends VBox {
             mensaje.getStyleClass().removeAll("error-label");
             mensaje.getStyleClass().add("texto-rojo");
             mensaje.setText("Piloto actualizado correctamente.");
+            GestorSonido.reproducir("Confirmado sound.mp3");
             actualizarLista(busqueda.getTexto());
         } catch (ValidacionException ex) {
             mensaje.getStyleClass().removeAll("texto-rojo");
             mensaje.getStyleClass().add("error-label");
             mensaje.setText(ex.getMessage());
+            GestorSonido.reproducir("Error sound.mp3");
         }
     }
 

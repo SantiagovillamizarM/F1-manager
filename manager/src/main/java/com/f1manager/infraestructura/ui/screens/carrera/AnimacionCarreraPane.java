@@ -48,7 +48,7 @@ public class AnimacionCarreraPane extends BorderPane {
     private final Clima climaReal;
     private final Map<Piloto, Color> colores = new LinkedHashMap<>();
     private final Map<Piloto, Double> factorVelocidad = new LinkedHashMap<>();
-    private final Slider sliderVelocidadSimulacion = new Slider(0.25, 3.0, 0.5);
+    private final Slider sliderVelocidadSimulacion = new Slider(0.25, 3.0, 0.35);
     private final Label etiquetaVelocidadSimulacion = new Label();
     private final Map<Piloto, ResultadoCarrera> resultadoPorPiloto = new LinkedHashMap<>();
     // Un Label estable por piloto, creado una sola vez: si se recrearan cada fotograma (60/s), un

@@ -4,6 +4,7 @@ import com.f1manager.infraestructura.persistencia.DataStore;
 import com.f1manager.dominio.excepcion.ValidacionException;
 import com.f1manager.dominio.modelo.Circuito;
 import com.f1manager.infraestructura.ui.components.CampoBusqueda;
+import com.f1manager.infraestructura.ui.util.GestorSonido;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -153,11 +154,13 @@ public class CircuitosEditarPane extends VBox {
             mensaje.getStyleClass().removeAll("error-label");
             mensaje.getStyleClass().add("texto-rojo");
             mensaje.setText("Circuito actualizado correctamente.");
+            GestorSonido.reproducir("Confirmado sound.mp3");
             actualizarLista(busqueda.getTexto());
         } catch (ValidacionException ex) {
             mensaje.getStyleClass().removeAll("texto-rojo");
             mensaje.getStyleClass().add("error-label");
             mensaje.setText(ex.getMessage());
+            GestorSonido.reproducir("Error sound.mp3");
         }
     }
 

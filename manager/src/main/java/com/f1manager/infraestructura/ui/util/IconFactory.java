@@ -8,6 +8,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import com.f1manager.dominio.modelo.Equipo;
 import com.f1manager.dominio.modelo.Piloto;
 import javafx.scene.shape.*;
 import javafx.scene.image.ImageView;
@@ -61,7 +62,36 @@ public final class IconFactory {
                 }
             }
         }
-        return escudoEquipo(colorReserva);
+        return logoGestionEquipos();
+    }
+
+    /**
+     * Logo de un equipo: si tiene una imagen propia subida por el usuario, se usa esa; si no,
+     * cae al logo real de la escudería por nombre ({@link #logoEquipo}) y, en último caso, al
+     * escudo genérico.
+     */
+    public static Group imagenEquipo(Equipo equipo, double ancho) {
+        Image imagen = cargarImagenEquipo(equipo);
+        if (imagen == null) {
+            return logoEquipo(equipo.getNombre(), BLANCO);
+        }
+        ImageView vista = new ImageView(imagen);
+        vista.setPreserveRatio(true);
+        vista.setFitWidth(ancho);
+        return new Group(vista);
+    }
+
+    private static Image cargarImagenEquipo(Equipo equipo) {
+        String url = equipo.getImagenUrl();
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        try {
+            Image imagen = new Image(url);
+            return imagen.isError() ? null : imagen;
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     /** Envuelve un ícono en un contenedor cuadrado con fondo rojo redondeado, usado en las tarjetas del menú. */

@@ -2,6 +2,7 @@ package com.f1manager.infraestructura.ui.screens.campeonato;
 
 import com.f1manager.dominio.modelo.Campeonato;
 import com.f1manager.dominio.modelo.Circuito;
+import com.f1manager.dominio.modelo.Clima;
 import com.f1manager.infraestructura.persistencia.DataStore;
 import com.f1manager.infraestructura.ui.screens.carrera.AnimacionCarreraPane;
 import com.f1manager.infraestructura.ui.screens.carrera.ResultadosCarreraPane;
@@ -69,13 +70,17 @@ public class PantallaCampeonato extends BorderPane {
 
     private void mostrarSeleccionClima(GestorEscenas gestor) {
         Circuito circuitoActual = campeonato.getCircuitoActual();
+        // En Campeonato el clima no lo elige el jugador: se decide solo por carrera (clima
+        // dinámico, ponderado según el país del circuito). En Carrera suelta (PantallaCarrera)
+        // sigue siendo 100% elegible por el jugador, sin tocar ese flujo.
+        Clima climaDinamico = campeonato.getClimaActual();
         SeleccionCarreraPane seleccion = new SeleccionCarreraPane((circuito, clima) ->
                 cambiar(new AnimacionCarreraPane(circuito, clima, simulacion -> {
                     campeonato.registrarResultado(simulacion.getResultados());
                     cambiar(new ResultadosCarreraPane(circuito, simulacion,
                             "VER TABLA DE POSICIONES", () -> mostrarTabla(gestor),
                             "ABANDONAR CAMPEONATO", gestor::volver));
-                })), circuitoActual);
+                })), circuitoActual, climaDinamico);
         cambiar(seleccion);
     }
 

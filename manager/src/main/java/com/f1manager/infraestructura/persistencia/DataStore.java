@@ -213,7 +213,7 @@ public final class DataStore {
                 .collect(Collectors.toList());
     }
 
-    public Equipo registrarEquipo(String nombre, String pais, String motor) throws ValidacionException {
+    public Equipo registrarEquipo(String nombre, String pais, String motor, String imagenUrl) throws ValidacionException {
         if (esVacio(nombre) || esVacio(pais) || esVacio(motor)) {
             throw new ValidacionException("Nombre, país y motor son obligatorios.");
         }
@@ -222,6 +222,7 @@ public final class DataStore {
             throw new ValidacionException("Ya existe un equipo registrado con ese nombre.");
         }
         Equipo equipo = new Equipo(nombre.trim(), pais.trim(), motor.trim());
+        equipo.setImagenUrl(imagenUrl);
         EquipoRepositorioMySQL.insertar(equipo);
         equipos.add(equipo);
         return equipo;
@@ -257,6 +258,42 @@ public final class DataStore {
         return vehiculos;
     }
 
+    public Monoplaza registrarVehiculo(String modelo, String equipo, String motor,
+                                        String velocidadTexto, String aceleracionTexto) throws ValidacionException {
+        if (esVacio(modelo) || esVacio(equipo) || esVacio(motor)) {
+            throw new ValidacionException("Modelo, equipo y motor son obligatorios.");
+        }
+        boolean equipoExiste = equipos.stream().anyMatch(e -> e.getNombre().equalsIgnoreCase(equipo));
+        if (!equipoExiste) {
+            throw new ValidacionException("El equipo seleccionado no existe.");
+        }
+        if (getVehiculoPorEquipo(equipo) != null) {
+            throw new ValidacionException("El equipo \"" + equipo + "\" ya tiene un vehículo asignado.");
+        }
+        double velocidad = parsearVelocidad(velocidadTexto);
+        double aceleracion = parsearAceleracion(aceleracionTexto);
+
+        int id = VehiculoRepositorioMySQL.insertarYObtenerId(modelo.trim(), equipo, motor.trim(), velocidad, aceleracion);
+        Monoplaza vehiculo = new Monoplaza(id, modelo.trim(), equipo, motor.trim(), velocidad, aceleracion);
+        vehiculos.add(vehiculo);
+        return vehiculo;
+    }
+
+    /**
+     * Antes de arrancar una carrera: si algún equipo con pilotos asignados no tiene ningún
+     * vehículo, esa carrera lo simularía con velocidad 0 y sin neumático — se bloquea aquí en vez
+     * de dejarlo llegar a la simulación.
+     */
+    public void validarEquiposListosParaCarrera() throws ValidacionException {
+        for (Equipo equipo : equipos) {
+            boolean tienePilotos = !getIdsPilotosDeEquipo(equipo.getNombre()).isEmpty();
+            if (tienePilotos && getVehiculoPorEquipo(equipo.getNombre()) == null) {
+                throw new ValidacionException("El equipo \"" + equipo.getNombre()
+                        + "\" tiene pilotos pero no tiene ningún vehículo asignado. Regístrale uno en Gestión de Vehículos antes de correr.");
+            }
+        }
+    }
+
     public void configurarVehiculo(int idVehiculo, CargaAerodinamica carga, ModoConduccion modo,
                                     TipoNeumatico neumatico, String presionTexto) throws ValidacionException {
         Monoplaza vehiculo = vehiculos.stream().filter(v -> v.getId() == idVehiculo).findFirst()
@@ -281,6 +318,40 @@ public final class DataStore {
         try {
             double valor = Double.parseDouble(texto.trim().replace(",", "."));
             if (valor < Monoplaza.PRESION_MINIMA || valor > Monoplaza.PRESION_MAXIMA) {
+                throw new ValidacionException(mensajeError);
+            }
+            return valor;
+        } catch (NumberFormatException e) {
+            throw new ValidacionException(mensajeError);
+        }
+    }
+
+    private static double parsearVelocidad(String texto) throws ValidacionException {
+        String mensajeError = String.format("La velocidad máxima debe ser un número entre %.0f y %.0f km/h (reglamento FIA para monoplazas actuales).",
+                Monoplaza.VELOCIDAD_MINIMA_KMH, Monoplaza.VELOCIDAD_MAXIMA_KMH);
+        if (esVacio(texto)) {
+            throw new ValidacionException(mensajeError);
+        }
+        try {
+            double valor = Double.parseDouble(texto.trim().replace(",", "."));
+            if (valor < Monoplaza.VELOCIDAD_MINIMA_KMH || valor > Monoplaza.VELOCIDAD_MAXIMA_KMH) {
+                throw new ValidacionException(mensajeError);
+            }
+            return valor;
+        } catch (NumberFormatException e) {
+            throw new ValidacionException(mensajeError);
+        }
+    }
+
+    private static double parsearAceleracion(String texto) throws ValidacionException {
+        String mensajeError = String.format("La aceleración 0-100 km/h debe ser un número entre %.1f y %.1f segundos (reglamento FIA para monoplazas actuales).",
+                Monoplaza.ACELERACION_MINIMA_S, Monoplaza.ACELERACION_MAXIMA_S);
+        if (esVacio(texto)) {
+            throw new ValidacionException(mensajeError);
+        }
+        try {
+            double valor = Double.parseDouble(texto.trim().replace(",", "."));
+            if (valor < Monoplaza.ACELERACION_MINIMA_S || valor > Monoplaza.ACELERACION_MAXIMA_S) {
                 throw new ValidacionException(mensajeError);
             }
             return valor;

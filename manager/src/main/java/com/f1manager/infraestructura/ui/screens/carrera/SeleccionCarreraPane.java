@@ -1,8 +1,10 @@
 package com.f1manager.infraestructura.ui.screens.carrera;
 
 import com.f1manager.infraestructura.persistencia.DataStore;
+import com.f1manager.dominio.excepcion.ValidacionException;
 import com.f1manager.dominio.modelo.Circuito;
 import com.f1manager.dominio.modelo.Clima;
+import com.f1manager.infraestructura.ui.util.GestorSonido;
 import com.f1manager.infraestructura.ui.util.PistaGenerador;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -30,6 +32,7 @@ public class SeleccionCarreraPane extends BorderPane {
     private final Label nombreCircuitoLabel = new Label();
     private final Label descripcionCircuitoLabel = new Label();
     private final Button botonEmpezar = new Button("EMPEZAR CARRERA");
+    private final Label mensajeError = new Label();
 
     private final Map<Clima, VBox> tarjetasClima = new EnumMap<>(Clima.class);
     private Circuito circuitoSeleccionado;
@@ -37,7 +40,7 @@ public class SeleccionCarreraPane extends BorderPane {
     private VBox filaCircuitoSeleccionada;
 
     public SeleccionCarreraPane(BiConsumer<Circuito, Clima> alEmpezar) {
-        this(alEmpezar, null);
+        this(alEmpezar, null, null);
     }
 
     /**
@@ -45,6 +48,17 @@ public class SeleccionCarreraPane extends BorderPane {
      *                     el circuito), se omite la lista de selección y queda preseleccionado.
      */
     public SeleccionCarreraPane(BiConsumer<Circuito, Clima> alEmpezar, Circuito circuitoFijo) {
+        this(alEmpezar, circuitoFijo, null);
+    }
+
+    /**
+     * @param circuitoFijo si no es null (modo campeonato: la fecha del calendario ya determina
+     *                     el circuito), se omite la lista de selección y queda preseleccionado.
+     * @param climaFijo si no es null (modo campeonato: el clima de esa fecha ya se decidió de
+     *                  forma dinámica), se omiten las tarjetas de clima elegibles y se muestra
+     *                  solo un pronóstico informativo, ya preseleccionado.
+     */
+    public SeleccionCarreraPane(BiConsumer<Circuito, Clima> alEmpezar, Circuito circuitoFijo, Clima climaFijo) {
         setPadding(new Insets(10));
 
         if (circuitoFijo == null) {
@@ -78,26 +92,45 @@ public class SeleccionCarreraPane extends BorderPane {
         contenedorLienzo.getStyleClass().add("panel");
         contenedorLienzo.setPadding(new Insets(14));
 
-        Label tituloClima = new Label("Seleccione las condiciones climáticas");
+        Label tituloClima = new Label(climaFijo == null
+                ? "Seleccione las condiciones climáticas" : "Pronóstico del clima para esta carrera");
         tituloClima.getStyleClass().add("titulo-seccion");
 
         HBox filaClima = new HBox(16);
         filaClima.setAlignment(Pos.CENTER);
-        for (Clima clima : Clima.values()) {
-            VBox tarjeta = construirTarjetaClima(clima);
-            tarjetasClima.put(clima, tarjeta);
-            filaClima.getChildren().add(tarjeta);
+        if (climaFijo == null) {
+            for (Clima clima : Clima.values()) {
+                VBox tarjeta = construirTarjetaClima(clima);
+                tarjetasClima.put(clima, tarjeta);
+                filaClima.getChildren().add(tarjeta);
+            }
+        } else {
+            filaClima.getChildren().add(construirTarjetaClimaFija(climaFijo));
+            climaSeleccionado = climaFijo;
         }
 
         botonEmpezar.getStyleClass().add("boton-grande");
         botonEmpezar.setDisable(true);
         botonEmpezar.setOnAction(e -> {
             if (circuitoSeleccionado != null && climaSeleccionado != null) {
-                alEmpezar.accept(circuitoSeleccionado, climaSeleccionado);
+                try {
+                    // Si algún equipo con pilotos no tiene vehículo, esa carrera lo simularía con
+                    // velocidad 0 y sin neumático — se corta aquí en vez de dejarlo llegar así.
+                    DataStore.getInstancia().validarEquiposListosParaCarrera();
+                    mensajeError.setText("");
+                    alEmpezar.accept(circuitoSeleccionado, climaSeleccionado);
+                } catch (ValidacionException ex) {
+                    mensajeError.setText(ex.getMessage());
+                    GestorSonido.reproducir("Error sound.mp3");
+                }
             }
         });
 
-        VBox cajaBoton = new VBox(botonEmpezar);
+        mensajeError.getStyleClass().add("error-label");
+        mensajeError.setWrapText(true);
+        mensajeError.setMaxWidth(420);
+
+        VBox cajaBoton = new VBox(10, botonEmpezar, mensajeError);
         cajaBoton.setAlignment(Pos.CENTER);
         cajaBoton.setPadding(new Insets(10, 0, 0, 0));
 
@@ -168,6 +201,18 @@ public class SeleccionCarreraPane extends BorderPane {
         tarjeta.setPrefWidth(130);
         tarjeta.setAlignment(Pos.CENTER);
         tarjeta.setOnMouseClicked(e -> seleccionarClima(clima));
+        return tarjeta;
+    }
+
+    /** Tarjeta de clima informativa (no clickeable), usada en modo campeonato cuando el clima ya se decidió solo. */
+    private VBox construirTarjetaClimaFija(Clima clima) {
+        Label etiqueta = new Label(clima.getEtiqueta());
+        etiqueta.getStyleClass().add("texto-normal");
+
+        VBox tarjeta = new VBox(etiqueta);
+        tarjeta.getStyleClass().add("opcion-clima-seleccionada");
+        tarjeta.setPrefWidth(130);
+        tarjeta.setAlignment(Pos.CENTER);
         return tarjeta;
     }
 

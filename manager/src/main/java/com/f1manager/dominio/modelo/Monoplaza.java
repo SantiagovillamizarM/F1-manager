@@ -14,6 +14,14 @@ public class Monoplaza {
     public static final double PRESION_MAXIMA = 26.0;
     public static final double PRESION_OPTIMA = (PRESION_MINIMA + PRESION_MAXIMA) / 2.0;
 
+    // Rango realista para un monoplaza de F1 actual (reglamento técnico de la FIA): la potencia,
+    // aerodinámica y neumáticos permitidos limitan tanto la velocidad punta como la aceleración
+    // a valores conocidos; fuera de este rango no se deja registrar un vehículo.
+    public static final double VELOCIDAD_MINIMA_KMH = 300.0;
+    public static final double VELOCIDAD_MAXIMA_KMH = 380.0;
+    public static final double ACELERACION_MINIMA_S = 2.0;
+    public static final double ACELERACION_MAXIMA_S = 4.0;
+
     private final int id;
     private String modelo;
     private String equipo;

@@ -2,6 +2,7 @@ package com.f1manager.infraestructura.ui.screens.circuitos;
 
 import com.f1manager.infraestructura.persistencia.DataStore;
 import com.f1manager.dominio.excepcion.ValidacionException;
+import com.f1manager.infraestructura.ui.util.GestorSonido;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -94,11 +95,13 @@ public class CircuitosRegistrarPane extends VBox {
             mensaje.setText("Circuito registrado correctamente.");
             mensaje.getStyleClass().removeAll("error-label");
             mensaje.getStyleClass().add("texto-rojo");
+            GestorSonido.reproducir("Confirmado sound.mp3");
             limpiar();
         } catch (ValidacionException ex) {
             mensaje.setText(ex.getMessage());
             mensaje.getStyleClass().removeAll("texto-rojo");
             mensaje.getStyleClass().add("error-label");
+            GestorSonido.reproducir("Error sound.mp3");
         }
     }
 

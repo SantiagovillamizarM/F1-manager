@@ -30,8 +30,11 @@ public class ModuloVehiculos extends ModuloGestionBase {
         TarjetaOpcion configurar = new TarjetaOpcion(
                 IconFactory.contenedor(IconFactory.logoConfigurarVehiculo(), 60),
                 "CONFIGURAR\nVEHÍCULO", () -> irA(1), false);
+        TarjetaOpcion registrar = new TarjetaOpcion(
+                IconFactory.contenedor(IconFactory.documento(IconFactory.BLANCO), 60),
+                "REGISTRAR\nVEHÍCULO", () -> irA(2), false);
 
-        HBox fila = new HBox(24, listar, configurar);
+        HBox fila = new HBox(24, listar, configurar, registrar);
         fila.setAlignment(Pos.CENTER);
         fila.setPadding(new Insets(40, 0, 0, 0));
         mostrarEnCentro(fila);
@@ -40,7 +43,8 @@ public class ModuloVehiculos extends ModuloGestionBase {
     private List<BarraMiniIconos.Item> construirItemsBarra() {
         return List.of(
                 new BarraMiniIconos.Item(IconFactory.monoplaza(IconFactory.BLANCO), "Listar monoplazas", () -> irA(0)),
-                new BarraMiniIconos.Item(IconFactory.engranaje(IconFactory.BLANCO), "Configurar vehículo", () -> irA(1))
+                new BarraMiniIconos.Item(IconFactory.logoConfigurarVehiculo(), "Configurar vehículo", () -> irA(1)),
+                new BarraMiniIconos.Item(IconFactory.documento(IconFactory.BLANCO), "Registrar vehículo", () -> irA(2))
         );
     }
 
@@ -49,6 +53,11 @@ public class ModuloVehiculos extends ModuloGestionBase {
         switch (indice) {
             case 0 -> mostrarEnCentro(new VehiculosListarPane());
             case 1 -> mostrarEnCentro(new VehiculosConfigurarPane());
+            case 2 -> mostrarEnCentro(new VehiculosRegistrarPane(this::irAListar));
         }
+    }
+
+    private void irAListar() {
+        irA(0);
     }
 }

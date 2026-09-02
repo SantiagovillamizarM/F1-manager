@@ -15,6 +15,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 //Importa la interfaz general Map, que sirve como plantilla para crear diccionarios de clave y valor
 import java.util.Map;
+//Importa Random para sortear el clima dinámico de cada carrera del calendario.
+import java.util.Random;
 
 //Clase publica llamada "Campeonato"
 public class Campeonato {
@@ -23,6 +25,12 @@ public class Campeonato {
     private static final int[] TABLA_PUNTOS = {25, 18, 15, 12, 10, 8, 6, 4, 2, 1};
     //Esta es una lista privada de los objetos que trae "Circuito" que representa el calendario de las carreras de f1
     private final List<Circuito> calendario;
+    //Generador de números aleatorios para el clima dinámico (una sola instancia para todo el campeonato).
+    private final Random random = new Random();
+    //Clima ya sorteado para la carrera actual (indice); se guarda para no volver a sortear si la
+    //pantalla se reconstruye, y se limpia en registrarResultado() para que la siguiente carrera
+    //sortee el suyo propio.
+    private Clima climaActual;
     //Esto es un diccionario (o mapa, los cuales funcionan con clave valor que funcionan como un diccionario de la vida real, 
     //donde buscas una palabra y encuentras su significado) fijo (gracias al final) que relaciona a cada objeto "Piloto" Con sus puntos acumulados
     //(Integer) manteniendo el orden de registro y lo llama "puntosPiloto"
@@ -67,6 +75,15 @@ public class Campeonato {
         return calendario.get(indice);
     }
 
+    //Clima dinámico de la carrera actual: se sortea una sola vez (según el país del circuito) y
+    //se reutiliza el mismo resultado mientras siga siendo la carrera actual.
+    public Clima getClimaActual() {
+        if (climaActual == null) {
+            climaActual = Clima.ALEATORIO.resolverDinamico(random, getCircuitoActual().getPais());
+        }
+        return climaActual;
+    }
+
     //Getter
     public int getNumeroCarreraActual() {
         //Retorna el número de la carrera actual adaptado a formato humano (sumando 1 al indice, ya que nosotros empezamos a contar desde el 1 no desde el 0)
@@ -100,6 +117,8 @@ public class Campeonato {
         }
         //Al indice se le suma uno para pasar a la siguiente carrera con los puntos ya actualizados
         indice++;
+        //Se limpia el clima ya sorteado: la siguiente carrera (nuevo indice) sorteará el suyo.
+        climaActual = null;
     }
 
     //Esto es un metodo privado del tipo int (osea numeros) que recibe la informacion de ResultadoCarrera llamado puntosDePosicion 
