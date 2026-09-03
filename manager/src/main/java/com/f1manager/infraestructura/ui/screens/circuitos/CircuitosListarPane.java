@@ -5,7 +5,7 @@
 package com.f1manager.infraestructura.ui.screens.circuitos;
 
 //Trae el DataStore, que es donde se guarda toda la información del programa (circuitos, pilotos, equipos, etc.)
-import com.f1manager.infraestructura.persistencia.DataStore;
+import com.f1manager.aplicacion.DataStore;
 //Trae Label, que es un texto que se muestra en pantalla (no se puede editar)
 import javafx.scene.control.Label;
 //Trae VBox, un contenedor que acomoda los elementos uno debajo del otro (en columna)

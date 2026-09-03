@@ -1,11 +1,17 @@
-//Se encarga de leer y escribir los circuitos directamente en la tabla MySQL "circuitos"
-//(osea que hace de puente entre los objetos "Circuito" de Java y las filas de la base de datos).
+//Este es un "adaptador" (en arquitectura hexagonal): la implementación real, con MySQL de por
+//medio, del puerto CircuitoRepositorio. Se encarga de leer y escribir los circuitos directamente en
+//la tabla MySQL "circuitos" (osea que hace de puente entre los objetos "Circuito" de Java y las
+//filas de la base de datos). La capa de aplicación (DataStore) nunca usa esta clase directamente:
+//solo conoce la interfaz CircuitoRepositorio, y es el compositor (Main) quien decide entregarle
+//justo esta implementación de MySQL.
 
 //Esta es la ruta que usa este .java
 package com.f1manager.infraestructura.persistencia;
 
 //Trae la clase Circuito del dominio, para poder armar objetos Circuito con lo que se lee de la base de datos
 import com.f1manager.dominio.modelo.Circuito;
+//Trae el puerto (la interfaz) que esta clase promete cumplir, definido del lado del dominio
+import com.f1manager.dominio.repositorio.CircuitoRepositorio;
 
 //Trae la clase Connection, que representa la conexión abierta hacia MySQL
 import java.sql.Connection;
@@ -22,15 +28,14 @@ import java.util.ArrayList;
 //Importa la interfaz List, que define el comportamiento general de una lista en Java (sirve como plantilla para clases como ArrayList)
 import java.util.List;
 
-//Una clase final (no se puede heredar) y sin "public" (osea que solo se puede usar dentro de este mismo paquete) llamada "CircuitoRepositorioMySQL"
-final class CircuitoRepositorioMySQL {
-
-    //Constructor privado y vacío: todos los métodos de aquí son static, entonces no hace falta crear objetos de esta clase
-    private CircuitoRepositorioMySQL() {
-    }
+//Una clase publica y final (no se puede heredar) llamada "CircuitoRepositorioMySQL" que implementa
+//el puerto CircuitoRepositorio (por eso tiene que tener, sí o sí, los 4 métodos que pide esa interfaz)
+public final class CircuitoRepositorioMySQL implements CircuitoRepositorio {
 
     //Este método trae TODOS los circuitos guardados en la tabla "circuitos" de MySQL y los devuelve como una lista de objetos Circuito
-    static List<Circuito> listarTodos() {
+    //@Override avisa que este método viene de la interfaz CircuitoRepositorio (y que Java revise que la firma coincida)
+    @Override
+    public List<Circuito> listarTodos() {
         //El texto de la consulta SQL: le pide a MySQL las columnas de la tabla circuitos
         String sql = "SELECT id, nombre, pais, longitud_km, vueltas, descripcion FROM circuitos";
         //Lista vacía donde se van a ir guardando los circuitos que se lean de la base de datos
@@ -54,7 +59,8 @@ final class CircuitoRepositorioMySQL {
     }
 
     //Inserta un circuito nuevo en MySQL y devuelve el id que MySQL le asignó automáticamente (autoincremental, osea que la base de datos lo pone solita, no lo elige Java)
-    static int insertarYObtenerId(String nombre, String pais, double longitudKm, int vueltas, String descripcion) {
+    @Override
+    public int insertarYObtenerId(String nombre, String pais, double longitudKm, int vueltas, String descripcion) {
         //Consulta con 5 "?" que son los espacios reservados donde luego se ponen los valores reales de forma segura
         String sql = "INSERT INTO circuitos (nombre, pais, longitud_km, vueltas, descripcion) VALUES (?, ?, ?, ?, ?)";
         //Statement.RETURN_GENERATED_KEYS le avisa a MySQL que después vamos a pedirle el id que generó para esta fila nueva
@@ -81,7 +87,8 @@ final class CircuitoRepositorioMySQL {
     }
 
     //Guarda en MySQL los datos actuales (ya modificados en memoria) de un circuito que ya existía, buscándolo por su id
-    static void actualizar(Circuito circuito) {
+    @Override
+    public void actualizar(Circuito circuito) {
         //Consulta UPDATE: cambia todas las columnas menos el id, y usa el id solo para saber cuál fila tocar (WHERE id = ?)
         String sql = "UPDATE circuitos SET nombre = ?, pais = ?, longitud_km = ?, vueltas = ?, "
                 + "descripcion = ? WHERE id = ?";
@@ -102,7 +109,8 @@ final class CircuitoRepositorioMySQL {
     }
 
     //Borra (DELETE) de MySQL el circuito que tenga el id indicado
-    static void eliminar(int id) {
+    @Override
+    public void eliminar(int id) {
         String sql = "DELETE FROM circuitos WHERE id = ?";
         try (Connection conexion = ConexionMySQL.obtener();
              PreparedStatement stmt = conexion.prepareStatement(sql)) {

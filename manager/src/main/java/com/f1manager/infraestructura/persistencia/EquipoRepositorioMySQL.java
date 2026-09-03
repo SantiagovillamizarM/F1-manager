@@ -1,11 +1,17 @@
-//Se encarga de leer y escribir los equipos directamente en la tabla MySQL "equipos"
-//(osea que hace de puente entre los objetos "Equipo" de Java y las filas de la base de datos).
+//Este es un "adaptador" (en arquitectura hexagonal): la implementación real, con MySQL de por
+//medio, del puerto EquipoRepositorio. Se encarga de leer y escribir los equipos directamente en la
+//tabla MySQL "equipos" (osea que hace de puente entre los objetos "Equipo" de Java y las filas de la
+//base de datos). La capa de aplicación (DataStore) nunca usa esta clase directamente: solo conoce la
+//interfaz EquipoRepositorio, y es el compositor (Main) quien decide entregarle justo esta
+//implementación de MySQL.
 
 //Esta es la ruta que usa este .java
 package com.f1manager.infraestructura.persistencia;
 
 //Trae la clase Equipo del dominio, para poder armar objetos Equipo con lo que se lee de la base de datos
 import com.f1manager.dominio.modelo.Equipo;
+//Trae el puerto (la interfaz) que esta clase promete cumplir, definido del lado del dominio
+import com.f1manager.dominio.repositorio.EquipoRepositorio;
 
 //Trae la clase Connection, que representa la conexión abierta hacia MySQL
 import java.sql.Connection;
@@ -20,15 +26,14 @@ import java.util.ArrayList;
 //Importa la interfaz List, que define el comportamiento general de una lista en Java (sirve como plantilla para clases como ArrayList)
 import java.util.List;
 
-//Una clase final (no se puede heredar) y sin "public" (osea que solo se puede usar dentro de este mismo paquete) llamada "EquipoRepositorioMySQL"
-final class EquipoRepositorioMySQL {
-
-    //Constructor privado y vacío: todos los métodos de aquí son static, entonces no hace falta crear objetos de esta clase
-    private EquipoRepositorioMySQL() {
-    }
+//Una clase publica y final (no se puede heredar) llamada "EquipoRepositorioMySQL" que implementa
+//el puerto EquipoRepositorio (por eso tiene que tener, sí o sí, los 3 métodos que pide esa interfaz)
+public final class EquipoRepositorioMySQL implements EquipoRepositorio {
 
     //Este método trae TODOS los equipos guardados en la tabla "equipos" de MySQL y los devuelve como una lista de objetos Equipo
-    static List<Equipo> listarTodos() {
+    //@Override avisa que este método viene de la interfaz EquipoRepositorio (y que Java revise que la firma coincida)
+    @Override
+    public List<Equipo> listarTodos() {
         //El texto de la consulta SQL: le pide a MySQL las columnas nombre, pais, motor e imagen_url de la tabla equipos
         String sql = "SELECT nombre, pais, motor, imagen_url FROM equipos";
         //Lista vacía donde se van a ir guardando los equipos que se lean de la base de datos
@@ -55,7 +60,8 @@ final class EquipoRepositorioMySQL {
     }
 
     //Este método guarda (INSERT) un equipo nuevo dentro de la tabla "equipos" de MySQL
-    static void insertar(Equipo equipo) {
+    @Override
+    public void insertar(Equipo equipo) {
         //La consulta con 4 signos de interrogación "?" que son los espacios reservados donde luego se ponen los valores reales de forma segura
         String sql = "INSERT INTO equipos (nombre, pais, motor, imagen_url) VALUES (?, ?, ?, ?)";
         //Abre la conexión y prepara la consulta; try-with-resources se encarga de cerrarlas al terminar
@@ -74,7 +80,8 @@ final class EquipoRepositorioMySQL {
     }
 
     //Este método borra (DELETE) de MySQL el equipo que tenga el nombre indicado
-    static void eliminar(String nombre) {
+    @Override
+    public void eliminar(String nombre) {
         //Consulta con un solo "?" que se rellena con el nombre a borrar
         String sql = "DELETE FROM equipos WHERE nombre = ?";
         try (Connection conexion = ConexionMySQL.obtener();

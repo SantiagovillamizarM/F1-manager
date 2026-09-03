@@ -1,5 +1,9 @@
-//Se encarga de leer y escribir los pilotos directamente en la tabla MySQL "pilotos"
-//(osea que hace de puente entre los objetos "Piloto" de Java y las filas de la base de datos).
+//Este es un "adaptador" (en arquitectura hexagonal): la implementación real, con MySQL de por
+//medio, del puerto PilotoRepositorio. Se encarga de leer y escribir los pilotos directamente en la
+//tabla MySQL "pilotos" (osea que hace de puente entre los objetos "Piloto" de Java y las filas de la
+//base de datos). La capa de aplicación (DataStore) nunca usa esta clase directamente: solo conoce la
+//interfaz PilotoRepositorio, y es el compositor (Main) quien decide entregarle justo esta
+//implementación de MySQL.
 
 //Esta es la ruta que usa este .java
 package com.f1manager.infraestructura.persistencia;
@@ -8,6 +12,8 @@ package com.f1manager.infraestructura.persistencia;
 import com.f1manager.dominio.modelo.Piloto;
 //Trae RolPiloto, el enum que dice si el piloto es titular o reserva (o el rol que sea que maneje el juego)
 import com.f1manager.dominio.modelo.RolPiloto;
+//Trae el puerto (la interfaz) que esta clase promete cumplir, definido del lado del dominio
+import com.f1manager.dominio.repositorio.PilotoRepositorio;
 
 //Trae la clase Connection, que representa la conexión abierta hacia MySQL
 import java.sql.Connection;
@@ -24,15 +30,14 @@ import java.util.ArrayList;
 //Importa la interfaz List, que define el comportamiento general de una lista en Java (sirve como plantilla para clases como ArrayList)
 import java.util.List;
 
-//Una clase final (no se puede heredar) y sin "public" (osea que solo se puede usar dentro de este mismo paquete) llamada "PilotoRepositorioMySQL"
-final class PilotoRepositorioMySQL {
-
-    //Constructor privado y vacío: todos los métodos de aquí son static, entonces no hace falta crear objetos de esta clase
-    private PilotoRepositorioMySQL() {
-    }
+//Una clase publica y final (no se puede heredar) llamada "PilotoRepositorioMySQL" que implementa
+//el puerto PilotoRepositorio (por eso tiene que tener, sí o sí, los 4 métodos que pide esa interfaz)
+public final class PilotoRepositorioMySQL implements PilotoRepositorio {
 
     //Este método trae TODOS los pilotos guardados en la tabla "pilotos" de MySQL y los devuelve como una lista de objetos Piloto
-    static List<Piloto> listarTodos() {
+    //@Override avisa que este método viene de la interfaz PilotoRepositorio (y que Java revise que la firma coincida)
+    @Override
+    public List<Piloto> listarTodos() {
         //El texto de la consulta SQL: le pide a MySQL todas las columnas de la tabla pilotos
         String sql = "SELECT id, nombre, equipo, rol, experiencia_anios, habilidad_curva, "
                 + "habilidad_adelantamiento, habilidad_recta, habilidad_lluvia, habilidad_seco, "
@@ -88,7 +93,8 @@ final class PilotoRepositorioMySQL {
     }
 
     //Inserta un piloto nuevo en MySQL y devuelve el id que MySQL le asignó automáticamente (autoincremental)
-    static int insertarYObtenerId(String nombre, String equipo, RolPiloto rol, int experiencia,
+    @Override
+    public int insertarYObtenerId(String nombre, String equipo, RolPiloto rol, int experiencia,
                                    int curva, int adelantamiento, int recta, int lluvia, int seco, int extremo,
                                    String imagenUrl) {
         //Consulta con 11 "?" que son los espacios reservados donde luego se ponen los valores reales de forma segura
@@ -126,7 +132,8 @@ final class PilotoRepositorioMySQL {
     }
 
     //Guarda en MySQL los datos actuales (ya modificados en memoria) de un piloto que ya existía, buscándolo por su id
-    static void actualizar(Piloto piloto) {
+    @Override
+    public void actualizar(Piloto piloto) {
         //Consulta UPDATE: cambia todas las columnas menos el id, y usa el id solo para saber cuál fila tocar (WHERE id = ?)
         String sql = "UPDATE pilotos SET nombre = ?, equipo = ?, rol = ?, experiencia_anios = ?, "
                 + "habilidad_curva = ?, habilidad_adelantamiento = ?, habilidad_recta = ?, "
@@ -154,7 +161,8 @@ final class PilotoRepositorioMySQL {
     }
 
     //Borra (DELETE) de MySQL el piloto que tenga el id indicado
-    static void eliminar(int id) {
+    @Override
+    public void eliminar(int id) {
         String sql = "DELETE FROM pilotos WHERE id = ?";
         try (Connection conexion = ConexionMySQL.obtener();
              PreparedStatement stmt = conexion.prepareStatement(sql)) {

@@ -5,7 +5,7 @@
 package com.f1manager.infraestructura.ui.screens.circuitos;
 
 //Trae el DataStore, que es donde se guarda toda la información del programa (circuitos, pilotos, equipos, etc.)
-import com.f1manager.infraestructura.persistencia.DataStore;
+import com.f1manager.aplicacion.DataStore;
 //Trae ValidacionException, el error controlado que se lanza cuando el usuario escribe algo inválido
 import com.f1manager.dominio.excepcion.ValidacionException;
 //Trae GestorSonido, la clase que reproduce los sonidos de confirmación o de error

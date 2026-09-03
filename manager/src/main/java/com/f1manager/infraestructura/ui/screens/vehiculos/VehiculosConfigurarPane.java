@@ -6,7 +6,7 @@
 package com.f1manager.infraestructura.ui.screens.vehiculos;
 
 //Trae la clase que guarda y maneja toda la información del programa (equipos, pilotos, vehiculos, etc), funciona como la "base de datos" en memoria
-import com.f1manager.infraestructura.persistencia.DataStore;
+import com.f1manager.aplicacion.DataStore;
 //Trae el error personalizado que se lanza cuando el usuario ingresa datos inválidos
 import com.f1manager.dominio.excepcion.ValidacionException;
 //Trae el enum CargaAerodinamica (Baja/Media/Alta), una de las opciones configurables del vehículo

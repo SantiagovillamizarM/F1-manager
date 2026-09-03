@@ -1,14 +1,27 @@
-//Mantiene en memoria (para que la UI de JavaFX reaccione sola) todo lo que hay en la base de
-//datos MySQL: circuitos, pilotos, equipos y vehículos. Al arrancar, carga todo desde MySQL; cada
-//operación de agregar/eliminar/configurar escribe también en MySQL, no solo en memoria.
+//Esta es la capa de APLICACIÓN (en arquitectura hexagonal): el "núcleo" que orquesta los casos de
+//uso (registrar/editar/eliminar/buscar) y mantiene en memoria (para que la UI de JavaFX reaccione
+//sola) todo lo que hay guardado: circuitos, pilotos, equipos y vehículos. Esta clase NO sabe nada de
+//MySQL ni de JDBC: solo conoce los 4 "puertos" (las interfaces XRepositorio del paquete
+//dominio.repositorio) y les pide a ellos que lean o escriban. Quién decide CUÁL implementación de
+//esos puertos usar (hoy en día, la de MySQL) es el compositor del programa (Main.java), que se la
+//entrega por parámetro en iniciar(). Así, si mañana se cambia de base de datos, esta clase no se
+//toca para nada: solo cambia qué adaptador le pasa Main.
 
 //Esta es la ruta que usa este .java
-package com.f1manager.infraestructura.persistencia;
+package com.f1manager.aplicacion;
 
 //Trae ValidacionException, el error "controlado" que se lanza cuando el usuario ingresa datos inválidos
 import com.f1manager.dominio.excepcion.ValidacionException;
 //Trae con el asterisco (*) TODAS las clases del paquete dominio.modelo (Circuito, Piloto, Equipo, Monoplaza, etc.) sin tener que importarlas una por una
 import com.f1manager.dominio.modelo.*;
+//Trae el puerto (la interfaz) de circuitos: esta clase solo habla con el CONTRATO, nunca con MySQL directamente
+import com.f1manager.dominio.repositorio.CircuitoRepositorio;
+//Trae el puerto (la interfaz) de equipos
+import com.f1manager.dominio.repositorio.EquipoRepositorio;
+//Trae el puerto (la interfaz) de pilotos
+import com.f1manager.dominio.repositorio.PilotoRepositorio;
+//Trae el puerto (la interfaz) de vehículos
+import com.f1manager.dominio.repositorio.VehiculoRepositorio;
 //Trae FXCollections, la fábrica de JavaFX que crea listas especiales "observables"
 import javafx.collections.FXCollections;
 //Trae ObservableList, una lista de JavaFX que avisa sola a la interfaz cuando algo se agrega o se quita, para que la pantalla se actualice sin código extra
@@ -22,8 +35,9 @@ import java.util.stream.Collectors;
 //Una clase publica y final (no se puede heredar) llamada "DataStore"
 public final class DataStore {
 
-    //Variable privada, fija y de la clase (static) que guarda la única instancia de DataStore que va a existir en todo el programa (patrón Singleton)
-    private static final DataStore INSTANCIA = new DataStore();
+    //Variable privada y de la clase (static) que guarda la única instancia de DataStore que va a existir en todo el programa (patrón Singleton).
+    //Ya no es "final" ni se crea de una vez: ahora se crea a través de iniciar(), cuando el compositor (Main) ya decidió con qué adaptadores arrancar.
+    private static DataStore instancia;
 
     //Lista observable privada y fija de objetos Circuito: guarda todos los circuitos que hay en memoria y avisa a la UI cuando cambian
     private final ObservableList<Circuito> circuitos = FXCollections.observableArrayList();
@@ -34,28 +48,56 @@ public final class DataStore {
     //Lista observable privada y fija de objetos Monoplaza (los vehículos)
     private final ObservableList<Monoplaza> vehiculos = FXCollections.observableArrayList();
 
-    //Constructor privado (por ser Singleton nadie más puede crear un DataStore, solo se usa el de INSTANCIA de arriba)
-    //Apenas se crea, carga todos los datos guardados en MySQL hacia las listas de memoria
-    private DataStore() {
+    //Estos 4 campos son los puertos ya "conectados": guardan el adaptador concreto que le entregó
+    //Main al momento de iniciar, pero tipados como la INTERFAZ (no como la clase MySQL). Por eso, en
+    //todo el resto de esta clase, nunca se vuelve a nombrar "MySQL": solo se usan estos 4 campos.
+    private final CircuitoRepositorio circuitoRepositorio;
+    private final PilotoRepositorio pilotoRepositorio;
+    private final EquipoRepositorio equipoRepositorio;
+    private final VehiculoRepositorio vehiculoRepositorio;
+
+    //Constructor privado (por ser Singleton nadie más puede crear un DataStore directamente: se pasa por iniciar()).
+    //Recibe los 4 puertos ya implementados (los adaptadores concretos) y, apenas se crea, carga todos los datos guardados hacia las listas de memoria.
+    private DataStore(CircuitoRepositorio circuitoRepositorio, PilotoRepositorio pilotoRepositorio,
+                       EquipoRepositorio equipoRepositorio, VehiculoRepositorio vehiculoRepositorio) {
+        this.circuitoRepositorio = circuitoRepositorio;
+        this.pilotoRepositorio = pilotoRepositorio;
+        this.equipoRepositorio = equipoRepositorio;
+        this.vehiculoRepositorio = vehiculoRepositorio;
         cargarDesdeBaseDeDatos();
     }
 
-    //Getter, pero de tipo static: devuelve siempre la misma instancia única de DataStore (así todo el programa comparte los mismos datos en memoria)
+    //Este método lo llama UNA SOLA VEZ el compositor (Main.start()), antes de mostrar cualquier
+    //pantalla: le entrega a DataStore los adaptadores concretos con los que va a trabajar toda la
+    //aplicación (hoy, los de MySQL) y arma la única instancia del Singleton. Este es el único punto
+    //de todo el programa donde la capa de aplicación queda "conectada" a una implementación real.
+    public static DataStore iniciar(CircuitoRepositorio circuitoRepositorio, PilotoRepositorio pilotoRepositorio,
+                                     EquipoRepositorio equipoRepositorio, VehiculoRepositorio vehiculoRepositorio) {
+        instancia = new DataStore(circuitoRepositorio, pilotoRepositorio, equipoRepositorio, vehiculoRepositorio);
+        return instancia;
+    }
+
+    //Getter, pero de tipo static: devuelve siempre la misma instancia única de DataStore (así todo el programa comparte los mismos datos en memoria).
+    //Si todavía nadie llamó a iniciar() (osea que Main no ha arrancado bien), avisa con un error claro en vez de devolver null y romper más adelante sin explicación.
     public static DataStore getInstancia() {
-        return INSTANCIA;
+        if (instancia == null) {
+            throw new IllegalStateException("DataStore no fue inicializado: hay que llamar a DataStore.iniciar(...) antes de usarlo (esto lo hace Main al arrancar).");
+        }
+        return instancia;
     }
 
     // =====================================================================
-    // CARGA INICIAL DESDE MYSQL
+    // CARGA INICIAL DESDE LOS REPOSITORIOS
     // =====================================================================
 
-    //Este método pide a cada repositorio (Equipo, Circuito, Piloto, Vehiculo) su lista completa desde MySQL
-    //y la mete de una vez en la lista observable correspondiente con setAll() (reemplaza todo el contenido anterior)
+    //Este método pide a cada puerto (Equipo, Circuito, Piloto, Vehiculo) su lista completa y la mete
+    //de una vez en la lista observable correspondiente con setAll() (reemplaza todo el contenido anterior).
+    //No sabe (ni le importa) si esos datos vienen de MySQL, de un archivo o de cualquier otra cosa.
     private void cargarDesdeBaseDeDatos() {
-        equipos.setAll(EquipoRepositorioMySQL.listarTodos());
-        circuitos.setAll(CircuitoRepositorioMySQL.listarTodos());
-        pilotos.setAll(PilotoRepositorioMySQL.listarTodos());
-        vehiculos.setAll(VehiculoRepositorioMySQL.listarTodos());
+        equipos.setAll(equipoRepositorio.listarTodos());
+        circuitos.setAll(circuitoRepositorio.listarTodos());
+        pilotos.setAll(pilotoRepositorio.listarTodos());
+        vehiculos.setAll(vehiculoRepositorio.listarTodos());
     }
 
     // =====================================================================
@@ -68,7 +110,7 @@ public final class DataStore {
     }
 
     //Este método valida los datos que llegan como texto (desde un formulario de la UI), y si están bien,
-    //crea un Circuito nuevo, lo guarda en MySQL y lo agrega también a la lista en memoria.
+    //crea un Circuito nuevo, lo guarda a través del puerto de circuitos y lo agrega también a la lista en memoria.
     public Circuito registrarCircuito(String nombre, String pais, String longitudTexto,
                                        String vueltasTexto, String descripcion) throws ValidacionException {
         //Si el nombre o el país vienen vacíos, se corta acá lanzando el error de validación
@@ -82,8 +124,8 @@ public final class DataStore {
         //Operador ternario: si la descripción viene vacía, se pone un texto por defecto; si no, se usa la que escribió el usuario (sin espacios sobrantes)
         String desc = esVacio(descripcion) ? "Sin descripción disponible." : descripcion.trim();
 
-        //Primero se guarda en MySQL (así se obtiene el id real que le puso la base de datos)
-        int id = CircuitoRepositorioMySQL.insertarYObtenerId(nombre.trim(), pais.trim(), longitud, vueltas, desc);
+        //Primero se guarda a través del puerto (así se obtiene el id real que le puso el almacenamiento)
+        int id = circuitoRepositorio.insertarYObtenerId(nombre.trim(), pais.trim(), longitud, vueltas, desc);
         //Se arma el objeto Circuito en memoria con ese mismo id
         Circuito circuito = new Circuito(id, nombre.trim(), pais.trim(), longitud, vueltas, desc);
         //Se agrega a la lista observable para que la UI se actualice sola
@@ -106,7 +148,7 @@ public final class DataStore {
                 .collect(Collectors.toList());
     }
 
-    //Busca el circuito por su id, valida los nuevos datos, y si todo está bien los actualiza tanto en memoria como en MySQL
+    //Busca el circuito por su id, valida los nuevos datos, y si todo está bien los actualiza tanto en memoria como a través del puerto
     public void editarCircuito(String idTexto, String nombre, String pais, String longitudTexto,
                                 String vueltasTexto, String descripcion) throws ValidacionException {
         //Convierte el id de texto a número
@@ -127,17 +169,17 @@ public final class DataStore {
         circuito.setLongitudKm(longitud);
         circuito.setVueltas(vueltas);
         circuito.setDescripcion(desc);
-        //Y se manda a guardar ese mismo objeto (ya actualizado) también en MySQL
-        CircuitoRepositorioMySQL.actualizar(circuito);
+        //Y se manda a guardar ese mismo objeto (ya actualizado) a través del puerto
+        circuitoRepositorio.actualizar(circuito);
     }
 
-    //Busca el circuito por id y, si existe, lo borra tanto de MySQL como de la lista en memoria
+    //Busca el circuito por id y, si existe, lo borra tanto a través del puerto como de la lista en memoria
     public void eliminarCircuito(String idTexto) throws ValidacionException {
         int id = parsearEnteroPositivo(idTexto, "Ingrese un ID numérico válido.");
         Circuito encontrado = circuitos.stream().filter(c -> c.getId() == id).findFirst()
                 .orElseThrow(() -> new ValidacionException("No existe ningún circuito con el ID " + id + "."));
-        //Primero se borra de la base de datos
-        CircuitoRepositorioMySQL.eliminar(id);
+        //Primero se borra a través del puerto
+        circuitoRepositorio.eliminar(id);
         //Y despues se quita también de la lista observable en memoria
         circuitos.remove(encontrado);
     }
@@ -159,7 +201,7 @@ public final class DataStore {
     }
 
     //Valida todos los datos del formulario de piloto (nombre, equipo, rol y las 6 habilidades) y, si todo está bien,
-    //crea el Piloto nuevo, lo guarda en MySQL y lo agrega también a la lista en memoria.
+    //crea el Piloto nuevo, lo guarda a través del puerto de pilotos y lo agrega también a la lista en memoria.
     public Piloto registrarPiloto(String nombre, String equipo, RolPiloto rol, String experienciaTexto,
                                    String curvaTexto, String adelantamientoTexto, String rectaTexto,
                                    String lluviaTexto, String secoTexto, String extremoTexto,
@@ -187,8 +229,8 @@ public final class DataStore {
         int seco = parsearHabilidad(secoTexto, "seco");
         int extremo = parsearHabilidad(extremoTexto, "clima extremo");
 
-        //Primero se guarda en MySQL (así se obtiene el id real que le puso la base de datos)
-        int id = PilotoRepositorioMySQL.insertarYObtenerId(nombre.trim(), equipo, rol, experiencia,
+        //Primero se guarda a través del puerto (así se obtiene el id real que le puso el almacenamiento)
+        int id = pilotoRepositorio.insertarYObtenerId(nombre.trim(), equipo, rol, experiencia,
                 curva, adelantamiento, recta, lluvia, seco, extremo, imagenUrl);
         //Se arma el objeto Piloto en memoria con ese mismo id
         Piloto piloto = new Piloto(id, nombre.trim(), equipo, rol, experiencia,
@@ -199,7 +241,7 @@ public final class DataStore {
         return piloto;
     }
 
-    //Busca el piloto por su id, valida los nuevos datos, y si todo está bien los actualiza tanto en memoria como en MySQL
+    //Busca el piloto por su id, valida los nuevos datos, y si todo está bien los actualiza tanto en memoria como a través del puerto
     public void editarPiloto(String idTexto, String nombre, String equipo, RolPiloto rol, String experienciaTexto,
                               String curvaTexto, String adelantamientoTexto, String rectaTexto,
                               String lluviaTexto, String secoTexto, String extremoTexto,
@@ -241,17 +283,17 @@ public final class DataStore {
         piloto.setHabilidadSeco(seco);
         piloto.setHabilidadExtremo(extremo);
         piloto.setImagenUrl(imagenUrl);
-        //Y se manda a guardar ese mismo objeto (ya actualizado) también en MySQL
-        PilotoRepositorioMySQL.actualizar(piloto);
+        //Y se manda a guardar ese mismo objeto (ya actualizado) a través del puerto
+        pilotoRepositorio.actualizar(piloto);
     }
 
-    //Busca el piloto por id y, si existe, lo borra tanto de MySQL como de la lista en memoria
+    //Busca el piloto por id y, si existe, lo borra tanto a través del puerto como de la lista en memoria
     public void eliminarPiloto(String idTexto) throws ValidacionException {
         int id = parsearEnteroPositivo(idTexto, "Ingrese un ID numérico válido.");
         Piloto encontrado = pilotos.stream().filter(p -> p.getId() == id).findFirst()
                 .orElseThrow(() -> new ValidacionException("No existe ningún piloto con el ID " + id + "."));
-        //Primero se borra de la base de datos
-        PilotoRepositorioMySQL.eliminar(id);
+        //Primero se borra a través del puerto
+        pilotoRepositorio.eliminar(id);
         //Y despues se quita también de la lista observable en memoria
         pilotos.remove(encontrado);
     }
@@ -275,7 +317,7 @@ public final class DataStore {
     }
 
     //Valida los datos del formulario de equipo (nombre, país y motor obligatorios, y que el nombre no esté repetido) y,
-    //si todo está bien, crea el Equipo nuevo, lo guarda en MySQL y lo agrega también a la lista en memoria.
+    //si todo está bien, crea el Equipo nuevo, lo guarda a través del puerto de equipos y lo agrega también a la lista en memoria.
     public Equipo registrarEquipo(String nombre, String pais, String motor, String imagenUrl) throws ValidacionException {
         if (esVacio(nombre) || esVacio(pais) || esVacio(motor)) {
             throw new ValidacionException("Nombre, país y motor son obligatorios.");
@@ -287,14 +329,14 @@ public final class DataStore {
         }
         Equipo equipo = new Equipo(nombre.trim(), pais.trim(), motor.trim());
         equipo.setImagenUrl(imagenUrl);
-        //Se guarda primero en MySQL...
-        EquipoRepositorioMySQL.insertar(equipo);
+        //Se guarda primero a través del puerto...
+        equipoRepositorio.insertar(equipo);
         //...y luego se agrega a la lista observable para que la UI se actualice sola
         equipos.add(equipo);
         return equipo;
     }
 
-    //Busca el equipo por nombre y, si no tiene pilotos ni vehículo asignado, lo borra tanto de MySQL como de la lista en memoria
+    //Busca el equipo por nombre y, si no tiene pilotos ni vehículo asignado, lo borra tanto a través del puerto como de la lista en memoria
     public void eliminarEquipo(String nombreTexto) throws ValidacionException {
         if (esVacio(nombreTexto)) {
             throw new ValidacionException("Ingrese el nombre del equipo a eliminar.");
@@ -303,11 +345,11 @@ public final class DataStore {
         Equipo encontrado = equipos.stream().filter(e -> e.getNombre().equalsIgnoreCase(nombre)).findFirst()
                 .orElseThrow(() -> new ValidacionException("No existe ningún equipo llamado \"" + nombre + "\"."));
 
-        // Se valida en Java antes de tocar MySQL: si no, la restricción de llave foránea
-        // (pilotos/vehiculos -> equipos) rechaza el DELETE y sube como una excepción cruda,
+        // Se valida en Java antes de tocar el almacenamiento: si no, la restricción de llave foránea
+        // (pilotos/vehiculos -> equipos) rechaza el borrado y sube como una excepción cruda,
         // sin un mensaje que el usuario pueda entender.
         //Osea, primero revisamos aquí en Java si el equipo tiene pilotos o vehículo, para poder avisarle
-        //al usuario con un mensaje claro, en vez de dejar que MySQL rechace el borrado con un error feo
+        //al usuario con un mensaje claro, en vez de dejar que el borrado falle con un error feo
         boolean tienePilotos = !getIdsPilotosDeEquipo(encontrado.getNombre()).isEmpty();
         boolean tieneVehiculo = getVehiculoPorEquipo(encontrado.getNombre()) != null;
         if (tienePilotos || tieneVehiculo) {
@@ -315,8 +357,8 @@ public final class DataStore {
                     + "\": todavía tiene pilotos o un vehículo asignado. Elimínalos primero.");
         }
 
-        //Primero se borra de la base de datos
-        EquipoRepositorioMySQL.eliminar(encontrado.getNombre());
+        //Primero se borra a través del puerto
+        equipoRepositorio.eliminar(encontrado.getNombre());
         //Y despues se quita también de la lista observable en memoria
         equipos.remove(encontrado);
     }
@@ -331,7 +373,7 @@ public final class DataStore {
     }
 
     //Valida los datos del formulario de vehículo (modelo/equipo/motor obligatorios, que el equipo exista y que no tenga ya un vehículo)
-    //y, si todo está bien, crea el Monoplaza nuevo, lo guarda en MySQL y lo agrega también a la lista en memoria.
+    //y, si todo está bien, crea el Monoplaza nuevo, lo guarda a través del puerto de vehículos y lo agrega también a la lista en memoria.
     public Monoplaza registrarVehiculo(String modelo, String equipo, String motor,
                                         String velocidadTexto, String aceleracionTexto) throws ValidacionException {
         if (esVacio(modelo) || esVacio(equipo) || esVacio(motor)) {
@@ -349,8 +391,8 @@ public final class DataStore {
         double velocidad = parsearVelocidad(velocidadTexto);
         double aceleracion = parsearAceleracion(aceleracionTexto);
 
-        //Primero se guarda en MySQL (así se obtiene el id real que le puso la base de datos)
-        int id = VehiculoRepositorioMySQL.insertarYObtenerId(modelo.trim(), equipo, motor.trim(), velocidad, aceleracion);
+        //Primero se guarda a través del puerto (así se obtiene el id real que le puso el almacenamiento)
+        int id = vehiculoRepositorio.insertarYObtenerId(modelo.trim(), equipo, motor.trim(), velocidad, aceleracion);
         //Se arma el objeto Monoplaza en memoria con ese mismo id
         Monoplaza vehiculo = new Monoplaza(id, modelo.trim(), equipo, motor.trim(), velocidad, aceleracion);
         //Se agrega a la lista observable para que la UI se actualice sola
@@ -372,7 +414,7 @@ public final class DataStore {
         }
     }
 
-    //Busca el vehículo por id, valida la configuración elegida (carga, modo, neumático, presión) y la actualiza tanto en memoria como en MySQL
+    //Busca el vehículo por id, valida la configuración elegida (carga, modo, neumático, presión) y la actualiza tanto en memoria como a través del puerto
     public void configurarVehiculo(int idVehiculo, CargaAerodinamica carga, ModoConduccion modo,
                                     TipoNeumatico neumatico, String presionTexto) throws ValidacionException {
         Monoplaza vehiculo = vehiculos.stream().filter(v -> v.getId() == idVehiculo).findFirst()
@@ -386,8 +428,8 @@ public final class DataStore {
         vehiculo.setModoConduccion(modo);
         vehiculo.setTipoNeumatico(neumatico);
         vehiculo.setPresionAire(presion);
-        //Y se manda a guardar esa misma configuración también en MySQL
-        VehiculoRepositorioMySQL.actualizar(vehiculo);
+        //Y se manda a guardar esa misma configuración también a través del puerto
+        vehiculoRepositorio.actualizar(vehiculo);
     }
 
     //Convierte el texto de presión a double y valida que esté dentro del rango permitido (entre PRESION_MINIMA y PRESION_MAXIMA)

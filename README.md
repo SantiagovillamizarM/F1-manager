@@ -42,14 +42,17 @@ f1_manager/
     ├── pom.xml
     └── src/main/
         ├── java/com/f1manager/
-        │   ├── Main.java                        ← punto de entrada (extiende Application)
-        │   ├── dominio/
+        │   ├── Main.java                        ← punto de entrada Y compositor (wiring hexagonal, ver más abajo)
+        │   ├── dominio/                          ← núcleo: no depende de JavaFX ni de MySQL
         │   │   ├── modelo/                      ← entidades y enums de negocio
         │   │   ├── servicio/SimuladorCarrera.java  ← motor matemático de la carrera
+        │   │   ├── repositorio/                 ← PUERTOS: interfaces que el núcleo necesita para persistir datos
         │   │   └── excepcion/ValidacionException.java
-        │   └── infraestructura/
-        │       ├── persistencia/                ← acceso a MySQL + caché en memoria (DataStore)
-        │       └── ui/
+        │   ├── aplicacion/
+        │   │   └── DataStore.java               ← casos de uso: valida, orquesta reglas y cachea en memoria; solo conoce los puertos
+        │   └── infraestructura/                  ← todo lo que depende de tecnología externa (adaptadores)
+        │       ├── persistencia/                ← ADAPTADORES: implementan los puertos hablando con MySQL
+        │       └── ui/                           ← ADAPTADOR de entrada: JavaFX llama a la aplicación, nunca a MySQL
         │           ├── MenuPrincipal.java, PantallaBienvenida.java, ModuloGestionBase.java
         │           ├── components/              ← controles reutilizables (tarjetas, buscador, fondo animado...)
         │           ├── screens/                 ← pantallas agrupadas por módulo (campeonato, carrera, circuitos, equipos, pilotos, vehiculos)
@@ -60,10 +63,17 @@ f1_manager/
             └── imagenes/                         ← logos, avatares, fotos de pilotos, autos, choques...
 ```
 
-La arquitectura sigue una separación simple **dominio / infraestructura**:
+### Arquitectura hexagonal (puertos y adaptadores)
 
-- **`dominio`** no depende de JavaFX ni de MySQL: son las clases de negocio puras (`Circuito`, `Piloto`, `Equipo`, `Monoplaza`, los enums de configuración, `Campeonato`, y el `SimuladorCarrera`).
-- **`infraestructura`** es todo lo que depende de tecnología externa: la UI (JavaFX) y la persistencia (JDBC/MySQL).
+El proyecto sigue arquitectura hexagonal de verdad, con inversión de dependencias real (no solo una separación de carpetas):
+
+- **Puertos** (`dominio/repositorio`): interfaces como `CircuitoRepositorio`, `PilotoRepositorio`, `EquipoRepositorio` y `VehiculoRepositorio`. Definen QUÉ operaciones de persistencia necesita el negocio (listar, insertar, actualizar, eliminar), sin decir CÓMO ni con qué tecnología se cumplen.
+- **Adaptadores de salida** (`infraestructura/persistencia`): `CircuitoRepositorioMySQL`, `PilotoRepositorioMySQL`, `EquipoRepositorioMySQL` y `VehiculoRepositorioMySQL` implementan esos puertos hablando con MySQL por JDBC. Son la única parte del proyecto que sabe que existe MySQL.
+- **Aplicación** (`aplicacion/DataStore`): el caso de uso central. Valida formularios, aplica reglas de negocio (un equipo no se borra si tiene pilotos o vehículo, cada equipo solo puede tener un vehículo, etc.) y mantiene la caché en memoria (`ObservableList`) que la UI consume. Solo depende de los 4 puertos — nunca de una clase `*MySQL` — así que no tiene ni idea de que la base de datos es MySQL.
+- **Adaptador de entrada** (`infraestructura/ui`): las pantallas de JavaFX llaman a `DataStore.getInstancia()` para todo (nunca a un repositorio MySQL directamente).
+- **Compositor** (`Main.java`): el único lugar del programa que conoce a la vez los puertos y los adaptadores concretos. En `start()`, antes de mostrar cualquier pantalla, crea los 4 adaptadores de MySQL y se los entrega a `DataStore.iniciar(...)`, que los guarda tipados como sus interfaces.
+
+Gracias a esto, cambiar de motor de base de datos (o agregar, por ejemplo, un modo de pruebas con datos en memoria) solo requiere escribir nuevas clases que implementen los 4 puertos y cambiar esa única línea en `Main.start()` — ni `DataStore` ni ninguna pantalla de la UI se tocan.
 
 ## Requisitos previos
 
@@ -97,7 +107,7 @@ Al arrancar se abre `PantallaBienvenida`, y desde ahí se navega al `MenuPrincip
 
 ## Base de datos
 
-`DataStore` es un singleton que, al crearse, carga en memoria (en listas `ObservableList`) el contenido completo de 4 tablas, a través de sus respectivos repositorios (`*RepositorioMySQL`). Cada alta/edición/baja hecha desde la UI escribe primero en MySQL y luego refleja el cambio en la lista en memoria, para que la interfaz se actualice sola (gracias a `ObservableList`).
+`DataStore` es un singleton que, al crearse, carga en memoria (en listas `ObservableList`) el contenido completo de 4 tablas, a través de los puertos (`dominio.repositorio`), cumplidos en tiempo de ejecución por los adaptadores `*RepositorioMySQL`. Cada alta/edición/baja hecha desde la UI escribe primero en MySQL (vía el puerto correspondiente) y luego refleja el cambio en la lista en memoria, para que la interfaz se actualice sola (gracias a `ObservableList`).
 
 No existe un script `.sql` de creación de esquema incluido en el repositorio; las tablas usadas, deducidas de las consultas SQL de cada repositorio, son:
 
@@ -229,5 +239,5 @@ Todo bajo `src/main/resources/`:
 - Las credenciales de MySQL están hardcodeadas en `ConexionMySQL.java` — para compartir el proyecto o subirlo a un repositorio público conviene moverlas a variables de entorno o un archivo de configuración ignorado por git.
 - No hay script de creación del esquema de base de datos incluido; hay que crear las tablas a mano siguiendo las columnas usadas por los repositorios (ver [Base de datos](#base-de-datos)).
 - Cada equipo solo puede tener **un** vehículo asignado (`registrarVehiculo` lo valida).
-- No hay tests automatizados (`src/test/java` existe pero está vacío).
-- Existe un paquete `com.f1manager.aplicacion` vacío, reservado pero sin uso actual.
+- No hay tests automatizados (`src/test/java` existe pero está vacío) — con los puertos ya definidos, sería fácil agregarle a `DataStore` tests unitarios usando implementaciones falsas (fakes/mocks) de los 4 repositorios, sin necesitar una MySQL real corriendo.
+- No hay puertos/interfaces del lado de la UI (el "driving side"): las pantallas llaman directo a los métodos públicos de `DataStore`. Se optó por no agregar una interfaz ahí porque solo existe un adaptador de entrada (la UI de JavaFX); si el día de mañana se sumara, por ejemplo, una API REST además de la UI, ahí sí valdría la pena extraer esas interfaces.

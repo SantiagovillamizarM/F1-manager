@@ -14,7 +14,7 @@ import com.f1manager.dominio.modelo.Circuito;
 //Trae la clase Clima para poder sortear/leer el clima dinamico de cada carrera
 import com.f1manager.dominio.modelo.Clima;
 //Trae el DataStore, que guarda toda la informacion (circuitos, pilotos, equipos) cargada en la app
-import com.f1manager.infraestructura.persistencia.DataStore;
+import com.f1manager.aplicacion.DataStore;
 //Trae la pantalla que dibuja la animacion de la carrera sobre el trazado
 import com.f1manager.infraestructura.ui.screens.carrera.AnimacionCarreraPane;
 //Trae la pantalla que muestra los resultados finales de una carrera

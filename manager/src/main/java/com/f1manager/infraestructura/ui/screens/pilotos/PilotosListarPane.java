@@ -5,7 +5,7 @@
 package com.f1manager.infraestructura.ui.screens.pilotos;
 
 //Trae el DataStore, que es donde se guarda toda la información del juego (pilotos, equipos, etc.) en memoria
-import com.f1manager.infraestructura.persistencia.DataStore;
+import com.f1manager.aplicacion.DataStore;
 //Trae Label, que es un componente de JavaFX para mostrar texto en pantalla (no se puede editar)
 import javafx.scene.control.Label;
 //Trae VBox, que es un contenedor de JavaFX que acomoda sus elementos uno debajo del otro (en vertical)

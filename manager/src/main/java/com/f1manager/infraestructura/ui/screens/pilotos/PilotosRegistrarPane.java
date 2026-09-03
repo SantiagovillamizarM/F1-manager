@@ -5,7 +5,7 @@
 package com.f1manager.infraestructura.ui.screens.pilotos;
 
 //Trae el DataStore, que es donde se guarda toda la información del juego (pilotos, equipos, etc.) en memoria
-import com.f1manager.infraestructura.persistencia.DataStore;
+import com.f1manager.aplicacion.DataStore;
 //Trae ValidacionException, el error controlado que se lanza cuando algo que escribio el usuario no es valido
 import com.f1manager.dominio.excepcion.ValidacionException;
 //Trae RolPiloto, el enum con los roles posibles de un piloto (por ejemplo Titular, Reserva, etc.)

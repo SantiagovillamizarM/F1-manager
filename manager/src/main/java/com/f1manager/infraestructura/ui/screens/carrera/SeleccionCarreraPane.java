@@ -6,7 +6,7 @@
 package com.f1manager.infraestructura.ui.screens.carrera;
 
 //Trae la clase que guarda y da acceso a todos los datos de la app (circuitos, pilotos, equipos, etc.)
-import com.f1manager.infraestructura.persistencia.DataStore;
+import com.f1manager.aplicacion.DataStore;
 //Trae el error personalizado que se lanza cuando algo no está listo para correr la carrera (por ejemplo un equipo sin vehículo)
 import com.f1manager.dominio.excepcion.ValidacionException;
 //Trae la clase Circuito para poder mostrar y elegir el circuito de la carrera

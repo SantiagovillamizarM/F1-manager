@@ -6,7 +6,7 @@
 package com.f1manager.infraestructura.ui.screens.vehiculos;
 
 //Trae la clase que guarda y maneja toda la información del programa (equipos, pilotos, vehiculos, etc), funciona como la "base de datos" en memoria
-import com.f1manager.infraestructura.persistencia.DataStore;
+import com.f1manager.aplicacion.DataStore;
 //Trae la clase Monoplaza, que es el objeto con los datos técnicos del vehículo
 import com.f1manager.dominio.modelo.Monoplaza;
 //Trae la clase Piloto, que es el objeto con los datos de un piloto

@@ -1,11 +1,17 @@
-//Se encarga de leer y escribir los monoplazas (los autos) directamente en la tabla MySQL "vehiculos"
-//(osea que hace de puente entre los objetos "Monoplaza" de Java y las filas de la base de datos).
+//Este es un "adaptador" (en arquitectura hexagonal): la implementación real, con MySQL de por
+//medio, del puerto VehiculoRepositorio. Se encarga de leer y escribir los monoplazas (los autos)
+//directamente en la tabla MySQL "vehiculos" (osea que hace de puente entre los objetos "Monoplaza"
+//de Java y las filas de la base de datos). La capa de aplicación (DataStore) nunca usa esta clase
+//directamente: solo conoce la interfaz VehiculoRepositorio, y es el compositor (Main) quien decide
+//entregarle justo esta implementación de MySQL.
 
 //Esta es la ruta que usa este .java
 package com.f1manager.infraestructura.persistencia;
 
 //Trae CargaAerodinamica, el enum con las opciones de carga (Baja, Media, Alta) del monoplaza
 import com.f1manager.dominio.modelo.CargaAerodinamica;
+//Trae el puerto (la interfaz) que esta clase promete cumplir, definido del lado del dominio
+import com.f1manager.dominio.repositorio.VehiculoRepositorio;
 //Trae ModoConduccion, el enum con los modos de manejo (Normal, Agresivo, Ahorro) del monoplaza
 import com.f1manager.dominio.modelo.ModoConduccion;
 //Trae la clase Monoplaza del dominio, para poder armar objetos Monoplaza con lo que se lee de la base de datos
@@ -28,15 +34,14 @@ import java.util.ArrayList;
 //Importa la interfaz List, que define el comportamiento general de una lista en Java (sirve como plantilla para clases como ArrayList)
 import java.util.List;
 
-//Una clase final (no se puede heredar) y sin "public" (osea que solo se puede usar dentro de este mismo paquete) llamada "VehiculoRepositorioMySQL"
-final class VehiculoRepositorioMySQL {
-
-    //Constructor privado y vacío: todos los métodos de aquí son static, entonces no hace falta crear objetos de esta clase
-    private VehiculoRepositorioMySQL() {
-    }
+//Una clase publica y final (no se puede heredar) llamada "VehiculoRepositorioMySQL" que implementa
+//el puerto VehiculoRepositorio (por eso tiene que tener, sí o sí, los 3 métodos que pide esa interfaz)
+public final class VehiculoRepositorioMySQL implements VehiculoRepositorio {
 
     //Este método trae TODOS los vehículos guardados en la tabla "vehiculos" de MySQL y los devuelve como una lista de objetos Monoplaza
-    static List<Monoplaza> listarTodos() {
+    //@Override avisa que este método viene de la interfaz VehiculoRepositorio (y que Java revise que la firma coincida)
+    @Override
+    public List<Monoplaza> listarTodos() {
         //El texto de la consulta SQL: le pide a MySQL todas las columnas de la tabla vehiculos
         String sql = "SELECT id, modelo, equipo, motor, velocidad_max_kmh, aceleracion_0_100, "
                 + "carga_aerodinamica, modo_conduccion, tipo_neumatico, presion_aire FROM vehiculos";
@@ -71,7 +76,8 @@ final class VehiculoRepositorioMySQL {
 
     //Inserta un vehículo nuevo en MySQL, dejando su configuración (carga, modo, neumático, presión) en los valores
     //por defecto que trae Monoplaza, y devuelve el id que MySQL le asignó automáticamente (autoincremental).
-    static int insertarYObtenerId(String modelo, String equipo, String motor,
+    @Override
+    public int insertarYObtenerId(String modelo, String equipo, String motor,
                                    double velocidadMaxKmh, double aceleracion0a100) {
         //Consulta con 9 "?" que son los espacios reservados donde luego se ponen los valores reales de forma segura
         String sql = "INSERT INTO vehiculos (modelo, equipo, motor, velocidad_max_kmh, aceleracion_0_100, "
@@ -105,7 +111,8 @@ final class VehiculoRepositorioMySQL {
     }
 
     //Guarda en MySQL la configuración actual (carga, modo, neumático, presión) de un vehículo que ya existía, buscándolo por su id
-    static void actualizar(Monoplaza vehiculo) {
+    @Override
+    public void actualizar(Monoplaza vehiculo) {
         //Consulta UPDATE: solo toca las columnas de configuración, no el modelo/equipo/motor, y usa el id para saber cuál fila actualizar
         String sql = "UPDATE vehiculos SET carga_aerodinamica = ?, modo_conduccion = ?, "
                 + "tipo_neumatico = ?, presion_aire = ? WHERE id = ?";

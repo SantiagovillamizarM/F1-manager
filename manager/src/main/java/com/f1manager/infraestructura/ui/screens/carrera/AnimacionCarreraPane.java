@@ -6,7 +6,7 @@
 package com.f1manager.infraestructura.ui.screens.carrera;
 
 //Trae la clase que guarda y da acceso a todos los datos de la app (circuitos, pilotos, equipos, vehículos, etc.)
-import com.f1manager.infraestructura.persistencia.DataStore;
+import com.f1manager.aplicacion.DataStore;
 //Trae todas las clases del modelo de dominio (Piloto, Circuito, Clima, ResultadoCarrera, etc.)
 import com.f1manager.dominio.modelo.*;
 //Trae la clase que calcula de antemano el resultado completo de la carrera (tiempos, choques, paradas en boxes)
