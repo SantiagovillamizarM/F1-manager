@@ -1,33 +1,54 @@
+//Sub-pantalla para listar equipos: a la izquierda muestra la lista de
+//equipos registrados y, al hacer click en uno, a la derecha se ve su logo,
+//sus pilotos y el monoplaza que tiene asignado.
+
+//Esta es la ruta que usa este .java
 package com.f1manager.infraestructura.ui.screens.equipos;
 
+//Trae la clase que guarda y maneja toda la información del programa (equipos, pilotos, vehiculos, etc), funciona como la "base de datos" en memoria
 import com.f1manager.infraestructura.persistencia.DataStore;
+//Trae la clase Equipo, que es el objeto con los datos de un equipo (nombre, pais, motor, etc)
 import com.f1manager.dominio.modelo.Equipo;
+//Trae la clase Monoplaza, que es el objeto con los datos técnicos del vehículo de un equipo
 import com.f1manager.dominio.modelo.Monoplaza;
+//Trae la clase Piloto, que es el objeto con los datos de un piloto
 import com.f1manager.dominio.modelo.Piloto;
+//Trae la fábrica de iconos, de aca se sacan todos los dibujitos/logos que se usan en la pantalla
 import com.f1manager.infraestructura.ui.util.IconFactory;
+//Trae Insets, que sirve para poner márgenes/espacios alrededor de un elemento
 import javafx.geometry.Insets;
+//Trae Pos, que sirve para alinear elementos (centrado, izquierda, etc)
 import javafx.geometry.Pos;
+//Trae Label, que es un texto que se muestra en pantalla (no editable)
 import javafx.scene.control.Label;
+//Trae ScrollPane, un contenedor con barra de scroll para cuando la lista/detalle no cabe en la pantalla
 import javafx.scene.control.ScrollPane;
+//Trae Separator, que es una línea divisoria para separar secciones visualmente
 import javafx.scene.control.Separator;
+//Trae HBox, un contenedor que acomoda los elementos uno al lado del otro (en fila horizontal)
 import javafx.scene.layout.HBox;
+//Trae Priority, que sirve para decirle a un contenedor cuánto espacio extra debe tomar un elemento (ALWAYS/NEVER)
 import javafx.scene.layout.Priority;
+//Trae StackPane, un contenedor que apila los elementos uno encima del otro (útil para poner un solo panel que se va reemplazando)
 import javafx.scene.layout.StackPane;
+//Trae VBox, un contenedor que acomoda los elementos uno debajo del otro (en columna vertical)
 import javafx.scene.layout.VBox;
 
+//Importa la interfaz List, que define el comportamiento general de una lista en Java
 import java.util.List;
 
-/**
- * Sub-vista "Listar equipos": a la izquierda, la lista de equipos
- * registrados; al seleccionar uno, a la derecha se muestra su logo, sus
- * pilotos y el monoplaza que tiene asignado.
- */
+//Clase publica llamada "EquiposListarPane" que hereda de HBox (osea que ella misma es una fila donde a la izquierda va la lista y a la derecha el detalle)
 public class EquiposListarPane extends HBox {
 
+    //Columna donde se van poniendo, una debajo de otra, las filas con todos los equipos registrados
     private final VBox columnaLista = new VBox(10);
+    //Panel de la derecha donde se muestra el detalle del equipo seleccionado (o el mensaje de "selecciona uno")
     private final StackPane panelDetalle = new StackPane();
+    //Guarda cuál fila de la lista está actualmente resaltada, para poder quitarle el resaltado cuando se selecciona otra
     private VBox filaSeleccionada;
 
+    //Constructor
+    //Arma la pantalla completa: la lista con scroll a la izquierda y el panel de detalle a la derecha, y carga todos los equipos existentes
     public EquiposListarPane() {
         setSpacing(28);
 
@@ -48,6 +69,7 @@ public class EquiposListarPane extends HBox {
         HBox.setHgrow(panelDetalle, Priority.ALWAYS);
         getChildren().addAll(scroll, panelDetalle);
 
+        //Si no hay equipos registrados se avisa con un mensaje, si hay se arma una fila por cada uno
         var equipos = DataStore.getInstancia().getEquipos();
         if (equipos.isEmpty()) {
             Label vacio = new Label("No hay equipos registrados todavía.");
@@ -60,6 +82,7 @@ public class EquiposListarPane extends HBox {
         }
     }
 
+    //Arma una fila de la lista con el icono/logo del equipo, su nombre y su país+motor
     private VBox construirFila(Equipo equipo) {
         StackPane icono = IconFactory.contenedor(IconFactory.imagenEquipo(equipo, 40), 54);
 
@@ -80,6 +103,7 @@ public class EquiposListarPane extends HBox {
         return contenedorFila;
     }
 
+    //Marca visualmente la fila clickeada como seleccionada (y le quita el resaltado a la anterior) y muestra su detalle
     private void seleccionar(Equipo equipo, VBox fila) {
         if (filaSeleccionada != null) {
             filaSeleccionada.getStyleClass().remove("fila-lista-seleccionada");
@@ -91,6 +115,7 @@ public class EquiposListarPane extends HBox {
         mostrarDetalle(equipo);
     }
 
+    //Muestra el mensaje inicial en el panel de detalle, antes de que el usuario seleccione algún equipo
     private void mostrarMensajeSinSeleccion() {
         Label mensaje = new Label("Selecciona un equipo de la lista\npara ver sus pilotos y su monoplaza.");
         mensaje.getStyleClass().add("texto-secundario");
@@ -98,6 +123,7 @@ public class EquiposListarPane extends HBox {
         panelDetalle.getChildren().setAll(mensaje);
     }
 
+    //Arma y muestra en el panel de detalle toda la información del equipo seleccionado: logo, nombre, país, motor, pilotos y vehículo
     private void mostrarDetalle(Equipo equipo) {
         StackPane logo = new StackPane(IconFactory.imagenEquipo(equipo, 90));
         logo.setAlignment(Pos.CENTER);
@@ -124,10 +150,12 @@ public class EquiposListarPane extends HBox {
         panelDetalle.getChildren().setAll(scrollDetalle);
     }
 
+    //Arma la sección "Pilotos" del detalle: muestra cada piloto del equipo con su avatar, rol, experiencia y habilidad
     private VBox construirSeccionPilotos(Equipo equipo) {
         Label titulo = new Label("Pilotos");
         titulo.getStyleClass().add("etiqueta-campo");
 
+        //Trae del DataStore la lista de pilotos que pertenecen a este equipo
         List<Piloto> pilotos = DataStore.getInstancia().getPilotosPorEquipo(equipo.getNombre());
         VBox seccion = new VBox(10, titulo);
         if (pilotos.isEmpty()) {
@@ -154,10 +182,12 @@ public class EquiposListarPane extends HBox {
         return seccion;
     }
 
+    //Arma la sección "Monoplaza" del detalle: muestra el modelo, motor y datos técnicos del vehículo asignado al equipo
     private VBox construirSeccionVehiculo(Equipo equipo) {
         Label titulo = new Label("Monoplaza");
         titulo.getStyleClass().add("etiqueta-campo");
 
+        //Trae del DataStore el vehículo asignado a este equipo (puede no tener ninguno todavía)
         Monoplaza vehiculo = DataStore.getInstancia().getVehiculoPorEquipo(equipo.getNombre());
         if (vehiculo == null) {
             Label vacio = new Label("Sin monoplaza asignado actualmente.");

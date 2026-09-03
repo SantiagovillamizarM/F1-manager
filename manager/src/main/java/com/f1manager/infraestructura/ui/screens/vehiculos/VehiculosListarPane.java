@@ -1,33 +1,54 @@
+//Sub-pantalla para listar monoplazas: muestra los vehículos registrados
+//con un ícono representativo (no depende de imágenes externas para
+//funcionar) y, al seleccionar uno, muestra su información técnica ampliada.
+
+//Esta es la ruta que usa este .java
 package com.f1manager.infraestructura.ui.screens.vehiculos;
 
+//Trae la clase que guarda y maneja toda la información del programa (equipos, pilotos, vehiculos, etc), funciona como la "base de datos" en memoria
 import com.f1manager.infraestructura.persistencia.DataStore;
+//Trae la clase Monoplaza, que es el objeto con los datos técnicos del vehículo
 import com.f1manager.dominio.modelo.Monoplaza;
+//Trae la clase Piloto, que es el objeto con los datos de un piloto
 import com.f1manager.dominio.modelo.Piloto;
+//Trae la fábrica de iconos, de aca se sacan todos los dibujitos/logos que se usan en la pantalla
 import com.f1manager.infraestructura.ui.util.IconFactory;
+//Trae Insets, que sirve para poner márgenes/espacios alrededor de un elemento
 import javafx.geometry.Insets;
+//Trae Pos, que sirve para alinear elementos (centrado, izquierda, etc)
 import javafx.geometry.Pos;
+//Trae Label, que es un texto que se muestra en pantalla (no editable)
 import javafx.scene.control.Label;
+//Trae ScrollPane, un contenedor con barra de scroll para cuando la lista no cabe en la pantalla
 import javafx.scene.control.ScrollPane;
+//Trae Separator, que es una línea divisoria para separar secciones visualmente
 import javafx.scene.control.Separator;
+//Trae HBox, un contenedor que acomoda los elementos uno al lado del otro (en fila horizontal)
 import javafx.scene.layout.HBox;
+//Trae Priority, que sirve para decirle a un contenedor cuánto espacio extra debe tomar un elemento (ALWAYS/NEVER)
 import javafx.scene.layout.Priority;
+//Trae StackPane, un contenedor que apila los elementos uno encima del otro (útil para poner un solo panel que se va reemplazando)
 import javafx.scene.layout.StackPane;
+//Trae VBox, un contenedor que acomoda los elementos uno debajo del otro (en columna vertical)
 import javafx.scene.layout.VBox;
 
+//Importa la interfaz List, que define el comportamiento general de una lista en Java
 import java.util.List;
+//Trae Collectors, que sirve para juntar los elementos de un stream en un resultado final (aca se usa para unir los nombres de pilotos en un solo texto)
 import java.util.stream.Collectors;
 
-/**
- * Sub-vista "Listar Monoplazas": muestra los vehículos registrados con un
- * ícono representativo (no se depende de imágenes externas para funcionar)
- * y, al seleccionar uno, su información técnica ampliada.
- */
+//Clase publica llamada "VehiculosListarPane" que hereda de HBox (osea que ella misma es una fila donde a la izquierda va la lista y a la derecha el detalle)
 public class VehiculosListarPane extends HBox {
 
+    //Columna donde se van poniendo, una debajo de otra, las filas con todos los monoplazas registrados
     private final VBox columnaLista = new VBox(12);
+    //Panel de la derecha donde se muestra el detalle del monoplaza seleccionado (o el mensaje de "selecciona uno")
     private final StackPane panelDetalle = new StackPane();
+    //Guarda cuál fila de la lista está actualmente resaltada, para poder quitarle el resaltado cuando se selecciona otra
     private VBox filaSeleccionada;
 
+    //Constructor
+    //Arma la pantalla completa: la lista con scroll a la izquierda y el panel de detalle a la derecha, y carga todos los monoplazas existentes
     public VehiculosListarPane() {
         setSpacing(28);
 
@@ -51,11 +72,13 @@ public class VehiculosListarPane extends HBox {
         HBox.setHgrow(panelDetalle, Priority.ALWAYS);
         getChildren().addAll(scroll, panelDetalle);
 
+        //Se arma una fila por cada monoplaza registrado en el sistema
         for (Monoplaza m : DataStore.getInstancia().getVehiculos()) {
             columnaLista.getChildren().add(construirFila(m));
         }
     }
 
+    //Arma una fila de la lista con el icono del equipo dueño del monoplaza, su modelo y su equipo+motor
     private VBox construirFila(Monoplaza m) {
         StackPane icono = new StackPane(IconFactory.monoplazaDeEquipo(m.getEquipo(), 60));
         icono.setPrefSize(70, 40);
@@ -78,6 +101,7 @@ public class VehiculosListarPane extends HBox {
         return contenedorFila;
     }
 
+    //Marca visualmente la fila clickeada como seleccionada (y le quita el resaltado a la anterior) y muestra su detalle
     private void seleccionar(Monoplaza m, VBox fila) {
         if (filaSeleccionada != null) {
             filaSeleccionada.getStyleClass().remove("fila-lista-seleccionada");
@@ -89,6 +113,7 @@ public class VehiculosListarPane extends HBox {
         mostrarDetalle(m);
     }
 
+    //Muestra el mensaje inicial en el panel de detalle, antes de que el usuario seleccione algún monoplaza
     private void mostrarMensajeVacio() {
         Label mensaje = new Label("Selecciona un monoplaza de la lista\npara ver su información técnica.");
         mensaje.getStyleClass().add("texto-secundario");
@@ -96,6 +121,7 @@ public class VehiculosListarPane extends HBox {
         panelDetalle.getChildren().setAll(mensaje);
     }
 
+    //Arma y muestra en el panel de detalle toda la información técnica del monoplaza seleccionado
     private void mostrarDetalle(Monoplaza m) {
         StackPane imagen = new StackPane(IconFactory.monoplazaDeEquipo(m.getEquipo(), 380));
         imagen.setAlignment(Pos.CENTER);
@@ -120,6 +146,7 @@ public class VehiculosListarPane extends HBox {
             l.getStyleClass().add("texto-normal");
         }
 
+        //Busca los pilotos del equipo dueño de este monoplaza y arma un solo texto con sus nombres y roles separados por comas
         List<Piloto> pilotosAsociados = DataStore.getInstancia().getPilotosPorEquipo(m.getEquipo());
         String textoPilotos = pilotosAsociados.isEmpty() ? "Sin pilotos asignados actualmente."
                 : pilotosAsociados.stream().map(p -> p.getNombre() + " (" + p.getRol().getEtiqueta() + ")")
